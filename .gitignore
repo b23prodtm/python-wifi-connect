@@ -13,3 +13,5 @@ htmlcov
 .coverage
 hostapd.conf
 rc.local
+*.old
+*.aarch64

@@ -24,7 +24,7 @@ def have_active_internet_connection(host="8.8.8.8", port=53, timeout=2):
      socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect((host, port))
      return True
    except Exception as e:
-     #print(f"Exception: {e}")
+     #print("Exception: {e}")
      return False
 
 
@@ -61,7 +61,7 @@ def stop_connection(conn_name=GENERIC_CONNECTION_NAME):
         conn = connections[conn_name]
         conn.Delete()
     except Exception as e:
-        #print(f'stop_hotspot error {e}')
+        #print('stop_hotspot error {e}')
         return False
     time.sleep(2)
     return True
@@ -110,7 +110,7 @@ def get_list_of_access_points():
                     ap.RsnFlags & NetworkManager.NM_802_11_AP_SEC_KEY_MGMT_802_1X:
                 security = NM_SECURITY_ENTERPRISE
 
-            #print(f'{ap.Ssid:15} Flags=0x{ap.Flags:X} WpaFlags=0x{ap.WpaFlags:X} RsnFlags=0x{ap.RsnFlags:X}')
+            #print('{ap.Ssid:15} Flags=0x{ap.Flags:X} WpaFlags=0x{ap.WpaFlags:X} RsnFlags=0x{ap.RsnFlags:X}')
 
             # Decode our flag into a display string
             security_str = ''
@@ -144,7 +144,7 @@ def get_list_of_access_points():
     # always add a hidden place holder
     ssids.append({"ssid": "Enter a hidden WiFi name", "security": "HIDDEN"})
 
-    print(f'Available SSIDs: {ssids}')
+    print('Available SSIDs: {ssids}')
     return ssids
 
 
@@ -176,10 +176,10 @@ CONN_TYPE_SEC_ENTERPRISE = 'ENTERPRISE' # MIT SECURE
 def connect_to_AP(conn_type=None, conn_name=GENERIC_CONNECTION_NAME, \
         ssid=None, username=None, password=None):
 
-    #print(f"connect_to_AP conn_type={conn_type} conn_name={conn_name} ssid={ssid} username={username} password={password}")
+    #print("connect_to_AP conn_type={conn_type} conn_name={conn_name} ssid={ssid} username={username} password={password}")
 
     if conn_type is None or ssid is None:
-        print(f'connect_to_AP() Error: Missing args conn_type or ssid')
+        print('connect_to_AP() Error: Missing args conn_type or ssid')
         return False
 
     try:
@@ -266,13 +266,13 @@ def connect_to_AP(conn_type=None, conn_name=GENERIC_CONNECTION_NAME, \
             conn_str = 'ENTERPRISE'
 
         if conn_dict is None:
-            print(f'connect_to_AP() Error: Invalid conn_type="{conn_type}"')
+            print('connect_to_AP() Error: Invalid conn_type="{conn_type}"')
             return False
 
-        #print(f"new connection {conn_dict} type={conn_str}")
+        #print("new connection {conn_dict} type={conn_str}")
 
         NetworkManager.Settings.AddConnection(conn_dict)
-        print(f"Added connection {conn_name} of type {conn_str}")
+        print("Added connection {conn_name} of type {conn_str}")
 
         # Now find this connection and its device
         connections = NetworkManager.Settings.ListConnections()
@@ -288,31 +288,31 @@ def connect_to_AP(conn_type=None, conn_name=GENERIC_CONNECTION_NAME, \
             if dev.DeviceType == dtype:
                 break
         else:
-            print(f"connect_to_AP() Error: No suitable and available {ctype} device found.")
+            print("connect_to_AP() Error: No suitable and available {ctype} device found.")
             return False
 
         # And connect
         NetworkManager.NetworkManager.ActivateConnection(conn, dev, "/")
-        print(f"Activated connection={conn_name}.")
+        print("Activated connection={conn_name}.")
 
         # Wait for ADDRCONF(NETDEV_CHANGE): wlan0: link becomes ready
-        print(f'Waiting for connection to become active...')
+        print('Waiting for connection to become active...')
         loop_count = 0
         while dev.State != NetworkManager.NM_DEVICE_STATE_ACTIVATED:
-            #print(f'dev.State={dev.State}')
+            #print('dev.State={dev.State}')
             time.sleep(1)
             loop_count += 1
             if loop_count > 30: # only wait 30 seconds max
                 break
 
         if dev.State == NetworkManager.NM_DEVICE_STATE_ACTIVATED:
-            print(f'Connection {conn_name} is live.')
+            print('Connection {conn_name} is live.')
             return True
 
     except Exception as e:
-        print(f'Connection error {e}')
+        print('Connection error {e}')
 
-    print(f'Connection {conn_name} failed.')
+    print('Connection {conn_name} failed.')
     return False
 
 

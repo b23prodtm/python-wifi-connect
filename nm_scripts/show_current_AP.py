@@ -79,7 +79,7 @@ for dev in NetworkManager.NetworkManager.GetDevices():
         if user_input & USER_INPUT_PASSWORD:
             input_str += 'PASSWORD '
 
-        print(f'{ap.Ssid:15} Flags=0x{ap.Flags:X} WpaFlags=0x{ap.WpaFlags:X} RsnFlags=0x{ap.RsnFlags:X} Security={security_str:10} Input={input_str}')
+        print('{ap.Ssid:15} Flags=0x{ap.Flags:X} WpaFlags=0x{ap.WpaFlags:X} RsnFlags=0x{ap.RsnFlags:X} Security={security_str:10} Input={input_str}')
 
 
 
