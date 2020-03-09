@@ -19,8 +19,8 @@ TOPDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 # The top of our source tree is the parent of this scripts dir
 cd $TOPDIR
 
-# Use the venv
-source $TOPDIR/venv/bin/activate
+# Sometimes it takes a couple of seconds to connect the wifi,..
+sleep 15
 
 # Start our application
 python3 $TOPDIR/src/http_server.py -u $TOPDIR/ui/ $*

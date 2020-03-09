@@ -41,7 +41,7 @@ hotspot = {
 }
 
 NetworkManager.Settings.AddConnection(hotspot)
-print(f"Added connection: {hotspot}")
+print("Added connection: {hotspot}")
 
 # Now find this connection and its device
 connections = NetworkManager.Settings.ListConnections()
@@ -63,6 +63,6 @@ else:
 
 # And connect
 NetworkManager.NetworkManager.ActivateConnection(conn, dev, "/")
-print(f"Activated connection={conn}, dev={dev}.")
+print("Activated connection={conn}, dev={dev}.")
 
 

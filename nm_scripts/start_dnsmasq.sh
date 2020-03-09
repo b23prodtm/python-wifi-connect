@@ -19,10 +19,7 @@ CMD="dnsmasq"\
 " --keep-in-foreground"\
 " --bind-interfaces"\
 " --except-interface=lo"\
-" --conf-file"\
 " --no-hosts" 
 
 echo "Running in background: $CMD"
 `$CMD` &
-
-
