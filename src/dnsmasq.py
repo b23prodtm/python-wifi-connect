@@ -1,12 +1,10 @@
 # start / stop the dnsmasq process
 
-import subprocess, time
+import subprocess, time, os
 
 DEFAULT_GATEWAY="192.168.42.1"
 DEFAULT_DHCP_RANGE="192.168.42.2,192.168.42.254"
-DEFAULT_INTERFACE="wlan0" # use 'ip link show' to see list of interfaces
-if os.environ.has_key('DEFAULT_INTERFACE'):
-    DEFAULT_INTERFACE=os.environ.get('DEFAULT_INTERFACE')
+DEFAULT_INTERFACE=os.getenv('DEFAULT_INTERFACE',"wlan0") # use 'ip link show' to see list of interfaces
 
 def stop():
     ps = subprocess.Popen("ps -e | grep ' dnsmasq' | cut -c 1-6", shell=True, stdout=subprocess.PIPE)
