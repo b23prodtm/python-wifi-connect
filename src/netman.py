@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # Start a local hotspot using NetworkManager.
 
 # You must use https://developer.gnome.org/NetworkManager/1.2/spec.html
@@ -9,6 +10,9 @@ import uuid, os, sys, time, socket
 
 HOTSPOT_CONNECTION_NAME = 'hotspot'
 GENERIC_CONNECTION_NAME = 'python-wifi-connect'
+DEFAULT_INTERFACE='wlan0' # use 'ip link show' to see list of interfaces
+if os.environ.has_key('DEFAULT_INTERFACE'):
+    DEFAULT_INTERFACE=os.environ.get('DEFAULT_INTERFACE')
 
 
 #------------------------------------------------------------------------------
@@ -24,7 +28,7 @@ def have_active_internet_connection(host="8.8.8.8", port=53, timeout=2):
      socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect((host, port))
      return True
    except Exception as e:
-     #print(f"Exception: {e}")
+     #print("Exception: {e}")
      return False
 
 
@@ -61,14 +65,14 @@ def stop_connection(conn_name=GENERIC_CONNECTION_NAME):
         conn = connections[conn_name]
         conn.Delete()
     except Exception as e:
-        #print(f'stop_hotspot error {e}')
+        #print('stop_hotspot error {e}')
         return False
     time.sleep(2)
     return True
 
 
 #------------------------------------------------------------------------------
-# Return a list of available SSIDs and their security type, 
+# Return a list of available SSIDs and their security type,
 # or [] for none available or error.
 def get_list_of_access_points():
     # bit flags we use when decoding what we get back from NetMan for each AP
@@ -85,14 +89,14 @@ def get_list_of_access_points():
             continue
         for ap in dev.GetAccessPoints():
 
-            # Get Flags, WpaFlags and RsnFlags, all are bit OR'd combinations 
+            # Get Flags, WpaFlags and RsnFlags, all are bit OR'd combinations
             # of the NM_802_11_AP_SEC_* bit flags.
             # https://developer.gnome.org/NetworkManager/1.2/nm-dbus-types.html#NM80211ApSecurityFlags
 
             security = NM_SECURITY_NONE
 
             # Based on a subset of the flag settings we can determine which
-            # type of security this AP uses.  
+            # type of security this AP uses.
             # We can also determine what input we need from the user to connect to
             # any given AP (required for our dynamic UI form).
             if ap.Flags & NetworkManager.NM_802_11_AP_FLAGS_PRIVACY and \
@@ -110,22 +114,22 @@ def get_list_of_access_points():
                     ap.RsnFlags & NetworkManager.NM_802_11_AP_SEC_KEY_MGMT_802_1X:
                 security = NM_SECURITY_ENTERPRISE
 
-            #print(f'{ap.Ssid:15} Flags=0x{ap.Flags:X} WpaFlags=0x{ap.WpaFlags:X} RsnFlags=0x{ap.RsnFlags:X}')
+            #print('{ap.Ssid:15} Flags=0x{ap.Flags:X} WpaFlags=0x{ap.WpaFlags:X} RsnFlags=0x{ap.RsnFlags:X}')
 
             # Decode our flag into a display string
             security_str = ''
             if security == NM_SECURITY_NONE:
                 security_str = 'NONE'
-    
+
             if security & NM_SECURITY_WEP:
                 security_str = 'WEP'
-    
+
             if security & NM_SECURITY_WPA:
                 security_str = 'WPA'
-    
+
             if security & NM_SECURITY_WPA2:
                 security_str = 'WPA2'
-    
+
             if security & NM_SECURITY_ENTERPRISE:
                 security_str = 'ENTERPRISE'
 
@@ -144,14 +148,14 @@ def get_list_of_access_points():
     # always add a hidden place holder
     ssids.append({"ssid": "Enter a hidden WiFi name", "security": "HIDDEN"})
 
-    print(f'Available SSIDs: {ssids}')
+    print('Available SSIDs: {ssids}')
     return ssids
 
 
 #------------------------------------------------------------------------------
 # Get hotspot SSID name.
 def get_hotspot_SSID():
-    return 'PFC_EDU-'+os.getenv('RESIN_DEVICE_NAME_AT_INIT','aged-cheese')
+    return 'Raspibox-'+os.getenv('RESIN_DEVICE_NAME_AT_INIT','aged-cheese')
 
 
 #------------------------------------------------------------------------------
@@ -176,10 +180,10 @@ CONN_TYPE_SEC_ENTERPRISE = 'ENTERPRISE' # MIT SECURE
 def connect_to_AP(conn_type=None, conn_name=GENERIC_CONNECTION_NAME, \
         ssid=None, username=None, password=None):
 
-    #print(f"connect_to_AP conn_type={conn_type} conn_name={conn_name} ssid={ssid} username={username} password={password}")
+    #print("connect_to_AP conn_type={conn_type} conn_name={conn_name} ssid={ssid} username={username} password={password}")
 
     if conn_type is None or ssid is None:
-        print(f'connect_to_AP() Error: Missing args conn_type or ssid')
+        print('connect_to_AP() Error: Missing args conn_type or ssid')
         return False
 
     try:
@@ -191,10 +195,10 @@ def connect_to_AP(conn_type=None, conn_name=GENERIC_CONNECTION_NAME, \
                                 'ssid': ssid},
             'connection': {'autoconnect': False,
                            'id': conn_name,
-                           'interface-name': 'wlan0',
+                           'interface-name': DEFAULT_INTERFACE,
                            'type': '802-11-wireless',
                            'uuid': str(uuid.uuid4())},
-            'ipv4': {'address-data': 
+            'ipv4': {'address-data':
                         [{'address': '192.168.42.1', 'prefix': 24}],
                      'addresses': [['192.168.42.1', 24, '0.0.0.0']],
                      'method': 'manual'},
@@ -209,7 +213,7 @@ def connect_to_AP(conn_type=None, conn_name=GENERIC_CONNECTION_NAME, \
             '802-11-wireless': {'mode': 'infrastructure',
                                 'security': '802-11-wireless-security',
                                 'ssid': ssid},
-            '802-11-wireless-security': 
+            '802-11-wireless-security':
                 {'auth-alg': 'open', 'key-mgmt': 'wpa-eap'},
             '802-1x': {'eap': ['peap'],
                        'identity': username,
@@ -238,7 +242,7 @@ def connect_to_AP(conn_type=None, conn_name=GENERIC_CONNECTION_NAME, \
             '802-11-wireless': {'mode': 'infrastructure',
                                 'security': '802-11-wireless-security',
                                 'ssid': ssid},
-            '802-11-wireless-security': 
+            '802-11-wireless-security':
                 {'key-mgmt': 'wpa-psk', 'psk': password},
             'connection': {'id': conn_name,
                         'type': '802-11-wireless',
@@ -254,25 +258,25 @@ def connect_to_AP(conn_type=None, conn_name=GENERIC_CONNECTION_NAME, \
             conn_str = 'HOTSPOT'
 
         if conn_type == CONN_TYPE_SEC_NONE:
-            conn_dict = none_dict 
+            conn_dict = none_dict
             conn_str = 'OPEN'
 
         if conn_type == CONN_TYPE_SEC_PASSWORD:
-            conn_dict = passwd_dict 
+            conn_dict = passwd_dict
             conn_str = 'WEP/WPA/WPA2'
 
         if conn_type == CONN_TYPE_SEC_ENTERPRISE:
-            conn_dict = enterprise_dict 
+            conn_dict = enterprise_dict
             conn_str = 'ENTERPRISE'
 
         if conn_dict is None:
-            print(f'connect_to_AP() Error: Invalid conn_type="{conn_type}"')
+            print('connect_to_AP() Error: Invalid conn_type="{conn_type}"')
             return False
 
-        #print(f"new connection {conn_dict} type={conn_str}")
+        #print("new connection {conn_dict} type={conn_str}")
 
         NetworkManager.Settings.AddConnection(conn_dict)
-        print(f"Added connection {conn_name} of type {conn_str}")
+        print("Added connection {conn_name} of type {conn_str}")
 
         # Now find this connection and its device
         connections = NetworkManager.Settings.ListConnections()
@@ -288,33 +292,29 @@ def connect_to_AP(conn_type=None, conn_name=GENERIC_CONNECTION_NAME, \
             if dev.DeviceType == dtype:
                 break
         else:
-            print(f"connect_to_AP() Error: No suitable and available {ctype} device found.")
+            print("connect_to_AP() Error: No suitable and available {ctype} device found.")
             return False
 
         # And connect
         NetworkManager.NetworkManager.ActivateConnection(conn, dev, "/")
-        print(f"Activated connection={conn_name}.")
+        print("Activated connection={conn_name}.")
 
         # Wait for ADDRCONF(NETDEV_CHANGE): wlan0: link becomes ready
-        print(f'Waiting for connection to become active...')
+        print('Waiting for connection to become active...')
         loop_count = 0
         while dev.State != NetworkManager.NM_DEVICE_STATE_ACTIVATED:
-            #print(f'dev.State={dev.State}')
+            #print('dev.State={dev.State}')
             time.sleep(1)
             loop_count += 1
             if loop_count > 30: # only wait 30 seconds max
                 break
 
         if dev.State == NetworkManager.NM_DEVICE_STATE_ACTIVATED:
-            print(f'Connection {conn_name} is live.')
+            print('Connection {conn_name} is live.')
             return True
 
     except Exception as e:
-        print(f'Connection error {e}')
+        print('Connection error {e}')
 
-    print(f'Connection {conn_name} failed.')
+    print('Connection {conn_name} failed.')
     return False
-
-
-
-

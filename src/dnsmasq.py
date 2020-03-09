@@ -1,11 +1,13 @@
+#!/usr/bin/env python3
 # start / stop the dnsmasq process
 
-import subprocess, time
+import subprocess, time, os
 
 DEFAULT_GATEWAY="192.168.42.1"
 DEFAULT_DHCP_RANGE="192.168.42.2,192.168.42.254"
 DEFAULT_INTERFACE="wlan0" # use 'ip link show' to see list of interfaces
-
+if os.environ.has_key('DEFAULT_INTERFACE'):
+    DEFAULT_INTERFACE=os.environ.get('DEFAULT_INTERFACE')
 
 def stop():
     ps = subprocess.Popen("ps -e | grep ' dnsmasq' | cut -c 1-6", shell=True, stdout=subprocess.PIPE)
@@ -15,8 +17,8 @@ def stop():
     pid = pid.decode('utf-8')
     pid = pid.strip()
     if 0 < len(pid):
-        print(f"Killing dnsmasq, PID='{pid}'")
-        ps = subprocess.Popen(f"kill -9 {pid}", shell=True)
+        print("Killing dnsmasq, PID='{pid}'")
+        ps = subprocess.Popen("kill -9 {pid}", shell=True)
         ps.wait()
 
 
@@ -25,17 +27,16 @@ def start():
     stop()
 
     # build the list of args
-    path = "/usr/sbin/dnsmasq"
-    args = [path]
-    args.append(f"--address=/#/{DEFAULT_GATEWAY}")
-    args.append(f"--dhcp-range={DEFAULT_DHCP_RANGE}")
-    args.append(f"--dhcp-option=option:router,{DEFAULT_GATEWAY}")
-    args.append(f"--interface={DEFAULT_INTERFACE}")
-    args.append(f"--keep-in-foreground")
-    args.append(f"--bind-interfaces")
-    args.append(f"--except-interface=lo")
-    args.append(f"--conf-file")
-    args.append(f"--no-hosts" )
+    args = ["dnsmasq"]
+    args.append("--address=/#/{DEFAULT_GATEWAY}")
+    args.append("--dhcp-range={DEFAULT_DHCP_RANGE}")
+    args.append("--dhcp-option=option:router,{DEFAULT_GATEWAY}")
+    args.append("--interface={DEFAULT_INTERFACE}")
+    args.append("--keep-in-foreground")
+    args.append("--bind-interfaces")
+    args.append("--except-interface=lo")
+    args.append("--dhcp-authoritative")
+    args.append("--no-hosts" )
 
     # run dnsmasq in the background and save a reference to the object
     ps = subprocess.Popen(args)
@@ -43,6 +44,4 @@ def start():
 
     # give a few seconds for the proc to start
     time.sleep(2)
-    print(f'Started dnsmasq, PID={ps.pid}')
-
-
+    print('Started dnsmasq, PID={ps.pid}')

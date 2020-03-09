@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>PFC_EDU WiFi Connect</title>
+    <title>PFC_EDU Bluetooth Connect</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <!-- Latest compiled and minified CSS -->
@@ -44,15 +44,15 @@
 
       <div class="row reg-row">
         <div class="col-lg-8 col-lg-offset-1">
-          <h4>Please write down this device registration code:</h4>
-          <input class="form-control" id="regcode" readonly value=""></input>
+          <h4>Please write down this device pin code:</h4>
+          <input class="form-control" id="pincode" readonly value=""></input>
           <p>You will need it to add your device to your account in the next step.</p>
         </div>
       </div>
 
       <div class="row before-submit">
         <div class="col-lg-8 col-lg-offset-1">
-          <h3>Hi! Please choose your WiFi Network from the list.</h3>
+          <h3>Hi! Please choose your Bluetooth Device from the list.</h3>
         </div>
       </div>
 
@@ -61,30 +61,23 @@
           <form class="form form-horizontal" id='connect-form' action='/connect' method='post'>
 
             <div class="form-group">
-              <label for="ssid-select" class="control-label col-lg-4">WiFi Networks</label>
+              <label for="bt_addr-select" class="control-label col-lg-4">Bluetooth Devices</label>
               <div class="col-lg-4">
-                <select id='ssid-select' class="form-control" name='ssid'></select>
+                <select id='bt_addr-select' class="form-control" name='bt_addr'></select>
               </div>
             </div>
 
-            <div class="form-group hidden" id="hidden-ssid-group">
-              <label for="hidden-ssid" class="control-label col-lg-4">Hidden WiFi Network Name</label>
+            <div class="form-group hidden" id="service-group">
+              <label for="service" class="control-label col-lg-4">Bluetooth Service Name</label>
               <div class="col-lg-4">
-                <input class="form-control" name="hidden-ssid"></input>
+                <input class="form-control" name="service"></input>
               </div>
             </div>
 
-            <div class="form-group hidden" id="identity-group">
-              <label for="identity" class="control-label col-lg-4">WiFi Username</label>
+            <div class="form-group hidden" id="protoport-group">
+              <label for="protoport" class="control-label col-lg-4">Bluetooth Protocol:Port</label>
               <div class="col-lg-4">
-                <input class="form-control" name="identity"></input>
-              </div>
-            </div>
-
-            <div class="form-group hidden" id="passphrase-group">
-              <label for="passphrase" class="control-label col-lg-4">WiFi Password</label>
-              <div class="col-lg-4">
-                <input type='password' class="form-control" name='passphrase'></input>
+                <input type='password' class="form-control" name='protoport'></input>
               </div>
             </div>
 
@@ -106,8 +99,8 @@
 
       <div class="row hidden" id='no-networks-message'>
         <div class="col-lg-8 col-lg-offset-1">
-          <h3>No wifi networks available</h3>
-          <p>Please ensure there is a network within range and reboot the device.</p>
+          <h3>No Bluetooth device available</h3>
+          <p>Please ensure there is a discoverable device within range and reboot the device.</p>
         </div>
       </div>
 

@@ -1,0 +1,25 @@
+FROM balenalib/%%BALENA_MACHINE_NAME%%-python:3-buster-build
+ENV DBUS_SYSTEM_BUS_ADDRESS unix:path=/host/run/dbus/system_bus_socket
+
+# Deprecated INITSYSTEM as of balenalib major changes
+# https://www.balena.io/docs/reference/base-images/base-images/#major-changes
+ENV INITSYSTEM OFF
+ENV UDEV on
+ARG DEFAULT_INTERFACE
+ENV DEFAULT_INTERFACE ${DEFAULT_INTERFACE:-wlan0}
+# RUN [ "cross-build-start" ]
+RUN install_packages \
+  bluez \
+  python3-networkmanager \
+  python3-gi \
+  python3-dbus \
+  python3-gpiozero \
+  libbluetooth-dev \
+  bluetooth \
+  dnsmasq
+WORKDIR /usr/src/app
+COPY . .
+
+RUN [ "/bin/bash", "scripts/install.sh" ]
+CMD [ "/bin/bash", "scripts/run.sh" ]
+# RUN [ "cross-build-end" ]

@@ -1,54 +1,47 @@
 $(function(){
-    var networks = undefined;
+    var devices = undefined;
 
     function showHideFormFields() {
         var security = $(this).find(':selected').attr('data-security');
         // start off with all fields hidden
-        $('#identity-group').addClass('hidden');
-        $('#passphrase-group').addClass('hidden');
-        $('#hidden-ssid-group').addClass('hidden');
+        $('#service-group').addClass('hidden');
+        $('#protoport-group').addClass('hidden');
         if(security === 'NONE') {
             return; // nothing to do
         }
         if(security === 'ENTERPRISE') {
-            $('#identity-group').removeClass('hidden');
-            $('#passphrase-group').removeClass('hidden');
+            $('#service-group').removeClass('hidden');
+            $('#protoport-group').removeClass('hidden');
             return;
-        } 
-        if(security === 'HIDDEN') {
-            $('#hidden-ssid-group').removeClass('hidden');
-            // fall through
-        } 
-        // otherwise security is HIDDEN, WEP, WPA, or WPA2 which need password
-        $('#passphrase-group').removeClass('hidden');
+        }
     }
 
-    $('#ssid-select').change(showHideFormFields);
+    $('#bt_addr-select').change(showHideFormFields);
 
-    $.get("/regcode", function(data){
+    $.get("/pincode", function(data){
         if(data.length !== 0){
-            $('#regcode').val(data);
-        } else { 
+            $('#pincode').val(data);
+        } else {
             $('.reg-row').hide(); // no reg code, so hide that part of the UI
 	}
     });
 
-    $.get("/networks", function(data){
+    $.get("/devices", function(data){
         if(data.length === 0){
             $('.before-submit').hide();
-            $('#no-networks-message').removeClass('hidden');
+            $('#no-devices-message').removeClass('hidden');
         } else {
-            networks = JSON.parse(data);
-            $.each(networks, function(i, val){
-                $('#ssid-select').append(
+            devices = JSON.parse(data);
+            $.each(devices, function(bt_addr, name){
+                $('#bt_addr-select').append(
                     $('<option>')
-                        .text(val.ssid)
-                        .attr('val', val.ssid)
-                        .attr('data-security', val.security.toUpperCase())
+                        .text(name)
+                        .attr('val', bt_addr)
+                        //.attr('data-security', val.security.toUpperCase())
                 );
             });
 
-            jQuery.proxy(showHideFormFields, $('#ssid-select'))();
+            jQuery.proxy(showHideFormFields, $('#bt_addr-select'))();
         }
     });
 

@@ -13,3 +13,6 @@ htmlcov
 .coverage
 hostapd.conf
 rc.local
+Dockerfile.*
+!Dockerfile.template
+!Dockerfile.armhf

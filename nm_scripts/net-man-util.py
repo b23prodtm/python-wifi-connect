@@ -81,7 +81,7 @@ def list_():
     fmt = "%%s %%-%ds    %%s" % max([len(x[0]) for x in connections])
     for conn in sorted(connections):
         prefix = '* ' if conn[0] in active else '  '
-        print(fmt % (prefix, conn[0], conn[1]))
+        print(mt % (prefix, conn[0], conn[1]))
 
 def activate(names):
     connections = NetworkManager.Settings.ListConnections()
