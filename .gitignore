@@ -16,3 +16,5 @@ rc.local
 Dockerfile.*
 !Dockerfile.template
 !Dockerfile.armhf
+*.old
+*.aarch64
