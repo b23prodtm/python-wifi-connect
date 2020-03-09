@@ -22,9 +22,6 @@ cd $TOPDIR
 # Sometimes it takes a couple of seconds to connect the wifi,..
 sleep 15
 
-# Sometimes it takes a couple of seconds to connect the wifi,..
-# sleep 15
-
 # Start our application
 python3 $TOPDIR/src/http_server.py -u $TOPDIR/ui/ $*
 deactivate
