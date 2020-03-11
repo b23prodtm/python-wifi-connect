@@ -2,8 +2,8 @@
 
 import subprocess, time, os
 
-DEFAULT_GATEWAY="192.168.42.1"
-DEFAULT_DHCP_RANGE="192.168.42.2,192.168.42.254"
+DEFAULT_GATEWAY=os.getenv("DEFAULT_GATEWAY", "192.168.42.1")
+DEFAULT_DHCP_RANGE=os.getenv("DEFAULT_DHCP_RANGE","192.168.42.2,192.168.42.254")
 DEFAULT_INTERFACE=os.getenv('DEFAULT_INTERFACE',"wlan0") # use 'ip link show' to see list of interfaces
 
 def stop():
