@@ -1,4 +1,4 @@
-FROM balenalib/%%BALENA_MACHINE_NAME%%-debian-python:3-build
+FROM balenalib/%%BALENA_MACHINE_NAME%%-debian-python:3-stretch-build
 ENV DBUS_SYSTEM_BUS_ADDRESS unix:path=/host/run/dbus/system_bus_socket
 ARG DEFAULT_INTERFACE
 ENV DEFAULT_INTERFACE ${DEFAULT_INTERFACE:-"wlan0"}
@@ -30,5 +30,4 @@ COPY . .
 
 RUN [ "/bin/bash", "scripts/install.sh" ]
 # RUN [ "cross-build-end" ]
-RUN python3 -m pip install --upgrade pip -r config/requirements.txt
 CMD ["bash", "-c", "scripts/run.sh"]

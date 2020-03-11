@@ -12,7 +12,7 @@ import netman
 import dnsmasq
 
 # Defaults
-ADDRESS = os.getenv('DEFAULT_GATEWAY', get_Host_name_IP())
+ADDRESS = os.getenv('DEFAULT_GATEWAY', netman.get_Host_name_IP())
 PORT = 80
 UI_PATH = '../ui'
 
