@@ -10,7 +10,7 @@ import netman
 import dnsmasq
 
 # Defaults
-ADDRESS = '192.168.42.1'
+ADDRESS = os.getenv('DEFAULT_GATEWAY', netman.get_Host_name_IP())
 PORT = 80
 UI_PATH = '../ui'
 
@@ -203,14 +203,15 @@ def main(address, port, ui_path, rcode, delete_connections):
     # in the list).
     ssids = netman.get_list_of_access_points()
 
-    # Start the hotspot
-    if not netman.start_hotspot():
-        print('Error starting hotspot, exiting.')
-        sys.exit(1)
+    if not os.getenv('DISABLE_HOTSPOT', 0):
+        # Start the hotspot
+        if not netman.start_hotspot():
+            print('Error starting hotspot, exiting.')
+            sys.exit(1)
 
-    # Start dnsmasq (to advertise us as a router so captured portal pops up
-    # on the users machine to vend our UI in our http server)
-    dnsmasq.start()
+        # Start dnsmasq (to advertise us as a router so captured portal pops up
+        # on the users machine to vend our UI in our http server)
+        dnsmasq.start()
 
     # Find the ui directory which is up one from where this file is located.
     web_dir = os.path.join(os.path.dirname(__file__), ui_path)
