@@ -10,9 +10,7 @@ import uuid, os, sys, time, socket
 
 HOTSPOT_CONNECTION_NAME = 'hotspot'
 GENERIC_CONNECTION_NAME = 'python-wifi-connect'
-DEFAULT_INTERFACE='wlan0' # use 'ip link show' to see list of interfaces
-if os.environ.has_key('DEFAULT_INTERFACE'):
-    DEFAULT_INTERFACE=os.environ.get('DEFAULT_INTERFACE')
+DEFAULT_INTERFACE = os.getenv('DEFAULT_INTERFACE','wlan0') # use 'ip link show' to see list of interfaces
 
 
 #------------------------------------------------------------------------------
@@ -199,8 +197,8 @@ def connect_to_AP(conn_type=None, conn_name=GENERIC_CONNECTION_NAME, \
                            'type': '802-11-wireless',
                            'uuid': str(uuid.uuid4())},
             'ipv4': {'address-data':
-                        [{'address': '192.168.42.1', 'prefix': 24}],
-                     'addresses': [['192.168.42.1', 24, '0.0.0.0']],
+                        [{'address': DEFAULT_GATEWAY, 'prefix': 24}],
+                     'gateway': DEFAULT_GATEWAY,
                      'method': 'manual'},
             'ipv6': {'method': 'auto'}
         }
@@ -318,3 +316,16 @@ def connect_to_AP(conn_type=None, conn_name=GENERIC_CONNECTION_NAME, \
 
     print('Connection {conn_name} failed.')
     return False
+
+# Python3 code to display hostname and
+# IP address
+# Function to display hostname and
+# IP address
+def get_Host_name_IP():
+	try:
+		host_name = socket.gethostname()
+		host_ip = socket.gethostbyname(host_name)
+		print("Hostname : ",host_name)
+		print("IP : ",host_ip)
+	except:
+		print("Unable to get Hostname and IP")
