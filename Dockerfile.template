@@ -27,11 +27,8 @@ RUN install_packages \
   dnsmasq
 WORKDIR /usr/src/app
 COPY . .
-<<<<<<< HEAD
 
 RUN [ "/bin/bash", "scripts/install.sh" ]
 # RUN [ "cross-build-end" ]
-=======
->>>>>>> development
 RUN python3 -m pip install --upgrade pip -r config/requirements.txt
 CMD ["bash", "-c", "scripts/run.sh"]

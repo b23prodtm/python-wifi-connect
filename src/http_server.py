@@ -12,11 +12,7 @@ import netman
 import dnsmasq
 
 # Defaults
-<<<<<<< HEAD
 ADDRESS = os.getenv('DEFAULT_GATEWAY', get_Host_name_IP())
-=======
-ADDRESS = os.getenv('DEFAUöT_GATEWAY','192.168.42.1')
->>>>>>> development
 PORT = 80
 UI_PATH = '../ui'
 
@@ -227,7 +223,6 @@ def RequestHandlerClassFactory(address, nearbydevices, pincode):
 
 #------------------------------------------------------------------------------
 # Create the hotspot, start dnsmasq, start the HTTP server.
-<<<<<<< HEAD
 def main(address, port, ui_path, pincode, timeout, service, protoport, bt_address):
     print("looking for nearby devices...")
     # Get list of available devices from net man.
@@ -239,32 +234,6 @@ def main(address, port, ui_path, pincode, timeout, service, protoport, bt_addres
         print(" Main thread error : %s" % (err))
         exit(1)
 
-    # # Start the hotspot
-    # if not netman.start_hotspot():
-    #     print('Error starting hotspot, exiting.')
-    #     sys.exit(1)
-    #
-    # # Start dnsmasq (to advertise us as a router so captured portal pops up
-    # # on the users machine to vend our UI in our http server)
-    # dnsmasq.start()
-=======
-def main(address, port, ui_path, rcode, delete_connections):
-
-    # See if caller wants to delete all existing connections first
-    if delete_connections:
-        netman.delete_all_wifi_connections()
-
-    # Check if we are already connected, if so we are done.
-    if netman.have_active_internet_connection():
-        print('Already connected to the internet, nothing to do, exiting.')
-        sys.exit()
-
-    # Get list of available AP from net man.
-    # Must do this AFTER deleting any existing connections (above),
-    # and BEFORE starting our hotspot (or the hotspot will be the only thing
-    # in the list).
-    ssids = netman.get_list_of_access_points()
-
     if not os.getenv('DISABLE_HOTSPOT', 0):
         # Start the hotspot
         if not netman.start_hotspot():
@@ -274,7 +243,6 @@ def main(address, port, ui_path, rcode, delete_connections):
         # Start dnsmasq (to advertise us as a router so captured portal pops up
         # on the users machine to vend our UI in our http server)
         dnsmasq.start()
->>>>>>> development
 
     # Find the ui directory which is up one from where this file is located.
     web_dir = os.path.join(os.path.dirname(__file__), ui_path)
