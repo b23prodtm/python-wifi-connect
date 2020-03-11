@@ -1,4 +1,4 @@
-FROM balenalib/raspberrypi3-debian-python:3-build
+FROM balenalib/raspberrypi3-debian-python:3-stretch-build
 
 ENV DBUS_SYSTEM_BUS_ADDRESS unix:path=/host/run/dbus/system_bus_socket
 ARG DEFAULT_INTERFACE
