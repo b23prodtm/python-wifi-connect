@@ -25,7 +25,7 @@ def have_active_internet_connection(host="8.8.8.8", port=53, timeout=2):
      socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect((host, port))
      return True
    except Exception as e:
-     #print("Exception: {e}")
+     #print("Exception: {}".format(e))
      return False
 
 
@@ -62,7 +62,7 @@ def stop_connection(conn_name=GENERIC_CONNECTION_NAME):
         conn = connections[conn_name]
         conn.Delete()
     except Exception as e:
-        #print('stop_hotspot error {e}')
+        #print('stop_hotspot error ', e)
         return False
     time.sleep(2)
     return True
@@ -137,7 +137,7 @@ def get_list_of_access_points():
                 continue
 
             # Don't add other PFC's to the list!
-            if ap.Ssid.startswith('PFC_EDU-'):
+            if ap.Ssid.startswith('Raspibox-'):
                 continue
 
             ssids.append(entry)
@@ -145,7 +145,7 @@ def get_list_of_access_points():
     # always add a hidden place holder
     ssids.append({"ssid": "Enter a hidden WiFi name", "security": "HIDDEN"})
 
-    print('Available SSIDs: {ssids}')
+    print('Available SSIDs: {}'.format(ssids))
     return ssids
 
 
@@ -267,7 +267,7 @@ def connect_to_AP(conn_type=None, conn_name=GENERIC_CONNECTION_NAME, \
             conn_str = 'ENTERPRISE'
 
         if conn_dict is None:
-            print('connect_to_AP() Error: Invalid conn_type="{conn_type}"')
+            print('connect_to_AP() Error: Invalid conn_type="{}"'.format(conn_type))
             return False
 
         #print("new connection {conn_dict} type={conn_str}")
@@ -289,31 +289,31 @@ def connect_to_AP(conn_type=None, conn_name=GENERIC_CONNECTION_NAME, \
             if dev.DeviceType == dtype:
                 break
         else:
-            print("connect_to_AP() Error: No suitable and available {ctype} device found.")
+            print("connect_to_AP() Error: No suitable and available {} device found.".format(ctype))
             return False
 
         # And connect
         NetworkManager.NetworkManager.ActivateConnection(conn, dev, "/")
-        print("Activated connection={conn_name}.")
+        print("Activated connection={}.".format(conn_name))
 
         # Wait for ADDRCONF(NETDEV_CHANGE): wlan0: link becomes ready
         print('Waiting for connection to become active...')
         loop_count = 0
         while dev.State != NetworkManager.NM_DEVICE_STATE_ACTIVATED:
-            #print('dev.State={dev.State}')
+            #print('dev.State={}'.format(dev.State))
             time.sleep(1)
             loop_count += 1
             if loop_count > 30: # only wait 30 seconds max
                 break
 
         if dev.State == NetworkManager.NM_DEVICE_STATE_ACTIVATED:
-            print('Connection {conn_name} is live.')
+            print('Connection {} is live.'.format(conn_name))
             return True
 
     except Exception as e:
-        print('Connection error {e}')
+        print('Connection error {}'.format(e))
 
-    print('Connection {conn_name} failed.')
+    print('Connection {} failed.'.format(conn_name))
     return False
 
 # Python3 code to display hostname and
@@ -326,5 +326,5 @@ def get_Host_name_IP():
 		host_ip = socket.gethostbyname(host_name)
 		print("Hostname : ",host_name)
 		print("IP : ",host_ip)
-	except:
-		print("Unable to get Hostname and IP")
+	except Exception as e:
+		print("Unable to get Hostname and IP\n", e)

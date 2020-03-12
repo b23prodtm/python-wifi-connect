@@ -51,15 +51,15 @@ def RequestHandlerClassFactory(address, ssids, rcode):
         # See if this is a specific request, otherwise let the server handle it.
         def do_GET(self):
 
-            print('do_GET {self.path}')
+            print('do_GET {}'.format(self.path))
 
             # Handle the hotspot starting and a computer connecting to it,
             # we have to return a redirect to the gateway to get the
             # captured portal to show up.
             if '/hotspot-detect.html' == self.path:
                 self.send_response(301) # redirect
-                new_path = 'http://{self.address}/'
-                print('redirecting to {new_path}')
+                new_path = 'http://{}/'.format(self.address)
+                print('redirecting to {}'.format(new_path))
                 self.send_header('Location', new_path)
                 self.end_headers()
 
@@ -115,7 +115,7 @@ def RequestHandlerClassFactory(address, ssids, rcode):
             self.end_headers()
             response = BytesIO()
             fields = parse_qs(body.decode('utf-8'))
-            #print('POST received: {fields}')
+            #print('POST received: {}'.format(fields))
 
             # Parse the form post
             FORM_SSID = 'ssid'
@@ -124,7 +124,7 @@ def RequestHandlerClassFactory(address, ssids, rcode):
             FORM_PASSWORD = 'passphrase'
 
             if FORM_SSID not in fields:
-                print('Error: POST is missing {FORM_SSID} field.')
+                print('Error: POST is missing {} field.'.format(FORM_SSID))
                 return
 
             ssid = fields[FORM_SSID][0]
@@ -229,7 +229,7 @@ def main(address, port, ui_path, rcode, delete_connections):
 
     # Start an HTTP server to serve the content in the ui dir and handle the
     # POST request in the handler class.
-    print('Waiting for a connection to our hotspot {netman.get_hotspot_SSID()} ...')
+    print('Waiting for a connection to our hotspot {} ...'.format(netman.get_hotspot_SSID()))
     httpd = MyHTTPServer(web_dir, server_address, MyRequestHandlerClass)
     try:
         httpd.serve_forever()
@@ -294,9 +294,9 @@ if __name__ == "__main__":
         elif opt in ("-u"):
             ui_path = arg
 
-    print('Address={address}')
-    print('Port={port}')
-    print('UI path={ui_path}')
-    print('Device registration code={rcode}')
-    print('Delete Connections={delete_connections}')
+    print('Address={}'.format(address))
+    print('Port={}'.format(port))
+    print('UI path={}'.format(ui_path))
+    print('Device registration code={}'.format(rcode))
+    print('Delete Connections={}'.format(delete_connections))
     main(address, port, ui_path, rcode, delete_connections)

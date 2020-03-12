@@ -1,4 +1,4 @@
-FROM balenalib/%%BALENA_MACHINE_NAME%%-debian-python:3.6-stretch-build
+FROM balenalib/%%BALENA_MACHINE_NAME%%-ubuntu-python:3.6-bionic-build
 
 ENV DBUS_SYSTEM_BUS_ADDRESS unix:path=/host/run/dbus/system_bus_socket
 ARG DEFAULT_INTERFACE
@@ -13,7 +13,8 @@ ENV DEFAULT_DHCP_RANGE ${DEFAULT_DHCP_RANGE:-"192.168.42.2,192.168.42.254"}
 WORKDIR /usr/src/app
 # RUN [ "cross-build-start" ]
 RUN install_packages \
-  network-manager
+  network-manager \
+  python3-networkmanager
 COPY . .
 
 RUN [ "/bin/bash", "scripts/install.sh" ]

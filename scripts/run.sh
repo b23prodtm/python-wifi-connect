@@ -22,5 +22,8 @@ cd $TOPDIR
 # Sometimes it takes a couple of seconds to connect the wifi,..
 sleep 15
 
+# Use the venv
+source $TOPDIR/venv/bin/activate
+
 # Start our application
 python3 $TOPDIR/src/http_server.py -u $TOPDIR/ui/ $*

@@ -14,7 +14,7 @@ def stop():
     pid = pid.decode('utf-8')
     pid = pid.strip()
     if 0 < len(pid):
-        print("Killing dnsmasq, PID='{pid}'")
+        print("Killing dnsmasq, PID='{}'".format(pid))
         ps = subprocess.Popen("kill -9 {pid}", shell=True)
         ps.wait()
 
@@ -41,4 +41,4 @@ def start():
 
     # give a few seconds for the proc to start
     time.sleep(2)
-    print('Started dnsmasq, PID={ps.pid}')
+    print('Started dnsmasq, PID={}'.format(ps.pid))
