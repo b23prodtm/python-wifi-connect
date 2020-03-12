@@ -1,4 +1,4 @@
-FROM balenalib/raspberrypi3-debian-python:3-stretch-build
+FROM balenalib/raspberrypi3-debian-python:3.6-stretch-build
 
 ENV DBUS_SYSTEM_BUS_ADDRESS unix:path=/host/run/dbus/system_bus_socket
 ARG DEFAULT_INTERFACE
@@ -11,7 +11,12 @@ ARG DEFAULT_DHCP_RANGE
 ENV DEFAULT_DHCP_RANGE ${DEFAULT_DHCP_RANGE:-"192.168.42.2,192.168.42.254"}
 
 WORKDIR /usr/src/app
-
+# RUN [ "cross-build-start" ]
+RUN install_packages \
+  network-manager
 COPY . .
-RUN python3 -m pip install --upgrade pip -r config/requirements.txt
+
+RUN [ "/bin/bash", "scripts/install.sh" ]
+# RUN [ "cross-build-end" ]
+
 CMD ["bash", "-c", "scripts/run.sh"]
