@@ -24,6 +24,7 @@ sleep 15
 
 # Use the venv
 source $TOPDIR/venv/bin/activate
-
+export BALENA_SUPERVISOR_DEVICE=$(curl -X GET --header "Content-Type:application/json" \
+    "$BALENA_SUPERVISOR_ADDRESS/v1/device?apikey=$BALENA_SUPERVISOR_API_KEY")
 # Start our application
 python3 $TOPDIR/src/http_server.py -u $TOPDIR/ui/ $*

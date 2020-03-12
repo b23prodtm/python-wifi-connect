@@ -11,8 +11,20 @@ from io import BytesIO
 import netman
 import dnsmasq
 
+def bln_device_fetch(attribute='ip_address', idx=0):
+    bln_device=os.getenv('BALENA_SUPERVISOR_DEVICE', None)
+    data = json.loads(bln_device)
+    if bln_device and attribute in data:
+        host_ip = str(data[attribute])
+        print('Host IP address:', host_ip)
+        return split(host_ip)[idx]
+    elif attribute == 'ip_address':
+        return netman.get_Host_name_IP()
+    else:
+        return False
+
 # Defaults
-ADDRESS = os.getenv('DEFAULT_GATEWAY', netman.get_Host_name_IP())
+ADDRESS = os.getenv('DEFAULT_GATEWAY', bln_device_fetch())
 PORT = 8000
 UI_PATH = '../ui'
 
@@ -78,7 +90,8 @@ def bt_connect_service(nearby_devices, btsink="00:00:00:00:00:00", proto_port=""
 def cleanup():
     print("Cleaning up prior to exit.")
     dnsmasq.stop()
-    netman.stop_hotspot()
+    if not int(os.getenv('DISABLE_HOTSPOT', 0)):
+        netman.stop_hotspot()
 
 
 #------------------------------------------------------------------------------
@@ -186,7 +199,7 @@ def RequestHandlerClassFactory(address, nearbydevices, pincode):
             if FORM_PROTOCOL in fields:
                 protoport = fields[FORM_PROTOCOL][0]
 
-            if not os.getenv('DISABLE_HOTSPOT', 0):
+            if not int(os.getenv('DISABLE_HOTSPOT', 0)):
                 # Stop the hotspot
                 netman.stop_hotspot()
 
@@ -219,11 +232,9 @@ def RequestHandlerClassFactory(address, nearbydevices, pincode):
                 sys.exit()
             else:
                 print('Connection failed, restarting the hotspot.')
-
                 # Update the list of nearbydevices since we are not connected
                 self.nearbydevices = bluetooth.discover_devices(lookup_names = True, flush_cache = True, duration = int(os.environ["BTSPEAKER_SCAN_DURATION"]))
-
-                if not os.getenv('DISABLE_HOTSPOT', 0):
+                if not int(os.getenv('DISABLE_HOTSPOT', 0)):
                     # Start the hotspot again
                     netman.start_hotspot()
 
@@ -242,12 +253,11 @@ def main(address, port, ui_path, pincode, timeout, service, protoport, bt_addres
         print(" Main thread error : %s" % (err))
         exit(1)
 
-    if not os.getenv('DISABLE_HOTSPOT', 0):
+    if not int(os.getenv('DISABLE_HOTSPOT', 0)):
         # Start the hotspot
         if not netman.start_hotspot():
             print('Error starting hotspot, exiting.')
             sys.exit(1)
-
         # Start dnsmasq (to advertise us as a router so captured portal pops up
         # on the users machine to vend our UI in our http server)
         dnsmasq.start()

@@ -319,13 +319,14 @@ def connect_to_AP(conn_type=None, conn_name=GENERIC_CONNECTION_NAME, \
 
 # Python3 code to display hostname and
 # IP address
-# Function to display hostname and
-# IP address
 def get_Host_name_IP():
-	try:
-		host_name = socket.gethostname()
-		host_ip = socket.gethostbyname(host_name)
-		print("Hostname : ",host_name)
-		print("IP : ",host_ip)
-	except Exception as e:
-		print("Unable to get Hostname and IP : \n", e)
+    try:
+        host_name = socket.gethostname()
+        host_ip = socket.gethostbyname(host_name)
+        print("Hostname : ", host_name)
+        print("IP : ", host_ip)
+        return host_ip
+    except Exception as e:
+        print("Unable to get Hostname and IP : \n", e)
+
+    return None
