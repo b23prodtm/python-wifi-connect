@@ -9,11 +9,6 @@ from io import BytesIO
 import netman
 import dnsmasq
 
-# Defaults
-ADDRESS = os.getenv('DEFAULT_GATEWAY', bln_device_fetch())
-PORT = 80
-UI_PATH = '../ui'
-
 def bln_device_fetch(attribute='ip_address', idx=0):
     bln_device=os.getenv('BALENA_SUPERVISOR_DEVICE', None)
     data = json.loads(bln_device)
@@ -21,10 +16,15 @@ def bln_device_fetch(attribute='ip_address', idx=0):
         host_ip = str(data[attribute])
         print('Host IP address:', host_ip)
         return split(host_ip)[idx]
-    elif attribute is 'ip_address':
+    elif attribute == 'ip_address':
         return netman.get_Host_name_IP()
     else:
         return False
+
+# Defaults
+ADDRESS = os.getenv('DEFAULT_GATEWAY', bln_device_fetch())
+PORT = 80
+UI_PATH = '../ui'
 
 
 #------------------------------------------------------------------------------
