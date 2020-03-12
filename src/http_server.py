@@ -109,15 +109,15 @@ def RequestHandlerClassFactory(address, nearbydevices, pincode):
         # See if this is a specific request, otherwise let the server handle it.
         def do_GET(self):
 
-            print('do_GET {self.path}')
+            print('do_GET {}'.format(self.path))
 
             # Handle the hotspot starting and a computer connecting to it,
             # we have to return a redirect to the gateway to get the
             # captured portal to show up.
             if '/hotspot-detect.html' == self.path:
                 self.send_response(301) # redirect
-                new_path = 'http://{self.address}/'
-                print('redirecting to {new_path}')
+                new_path = 'http://{}/'.format(self.address)
+                print('redirecting to {}'.format(new_path))
                 self.send_header('Location', new_path)
                 self.end_headers()
 
@@ -127,21 +127,25 @@ def RequestHandlerClassFactory(address, nearbydevices, pincode):
                 self.end_headers()
                 response = BytesIO()
                 response.write(self.pincode.encode('utf-8'))
-                print('GET {self.path} returning: {response.getvalue()}')
+                print('GET {} returning: {}'.format(self.path, response.getvalue()))
                 self.wfile.write(response.getvalue())
                 return
 
             # Handle a REST API request to return the list of nearbydevices
             if '/devices' == self.path:
+                # Update the list of nearbydevices since we are not connected
+                self.nearbydevices = bluetooth.discover_devices(lookup_names = True, flush_cache = True, duration = int(os.environ["BTSPEAKER_SCAN_DURATION"]))
+
                 self.send_response(200)
                 self.end_headers()
                 response = BytesIO()
+                # Update the list of nearbydevices since we are not connected
                 nearbydevices = self.nearbydevices # passed in to the class factory
                 """ map whatever we get from bluetooth to our constants:
                 Device - 00:16:BC:30:D8:76
                 """
                 response.write(json.dumps(nearbydevices).encode('utf-8'))
-                print('GET {self.path} returning: {response.getvalue()}')
+                print('GET {} returning: {}'.format(self.path, response.getvalue()))
                 self.wfile.write(response.getvalue())
                 return
 
@@ -163,7 +167,7 @@ def RequestHandlerClassFactory(address, nearbydevices, pincode):
             self.end_headers()
             response = BytesIO()
             fields = parse_qs(body.decode('utf-8'))
-            #print('POST received: {fields}')
+            #print('POST received: {}'.format(fields))
 
             # Parse the form post
             FORM_BTADDR = 'bt_addr'
@@ -171,7 +175,7 @@ def RequestHandlerClassFactory(address, nearbydevices, pincode):
             FORM_PROTOCOL = 'protoport'
 
             if FORM_BTADDR not in fields:
-                print('Error: POST is missing {FORM_BTADDR} field.')
+                print('Error: POST is missing {} field.'.format(FORM_BTADDR))
                 return
 
             bt_addr = fields[FORM_BTADDR][0]
@@ -182,15 +186,18 @@ def RequestHandlerClassFactory(address, nearbydevices, pincode):
             if FORM_PROTOCOL in fields:
                 protoport = fields[FORM_PROTOCOL][0]
 
-            # Stop the hotspot
-            netman.stop_hotspot()
+            if not os.getenv('DISABLE_HOTSPOT', 0):
+                # Stop the hotspot
+                netman.stop_hotspot()
 
             # Connect to the user's selected AP
             sock = None
+            success='OK\n'
+            error='ERROR\n'
             try:
                 bt_connect_service(nearby_devices, bt_addr, protoport, service)
                 if sock:
-                    response.write(b'OK\n')
+                    response.write(b'{}'.format(success))
                     # pair the new device as known device
                     print("bluetooth pairing...")
                     ps = subprocess.Popen("printf \"pair %s\\nexit\\n\" \"$1\" | bluetoothctl", shell=True, stdout=subprocess.PIPE)
@@ -199,7 +206,7 @@ def RequestHandlerClassFactory(address, nearbydevices, pincode):
                     ps.wait()
                     sock.close()
                 else:
-                    response.write(b'ERROR\n')
+                    response.write(b'{}'.format(error))
             except bluetooth.btcommon.BluetoothError as err:
                 print(" Main thread error : %s" % (err))
                 exit(1)
@@ -207,17 +214,18 @@ def RequestHandlerClassFactory(address, nearbydevices, pincode):
             self.wfile.write(response.getvalue())
 
             # Handle success or failure of the new connection
-            if success:
+            if response.getvalue() is success:
                 print('Connected!  Exiting app.')
                 sys.exit()
             else:
                 print('Connection failed, restarting the hotspot.')
 
                 # Update the list of nearbydevices since we are not connected
-                self.nearbydevices = bluetooth.discover_devices(lookup_names = True, flush_cache = True, duration = os.environ["BTSPEAKER_SCAN_DURATION"])
+                self.nearbydevices = bluetooth.discover_devices(lookup_names = True, flush_cache = True, duration = int(os.environ["BTSPEAKER_SCAN_DURATION"]))
 
-                # Start the hotspot again
-                netman.start_hotspot()
+                if not os.getenv('DISABLE_HOTSPOT', 0):
+                    # Start the hotspot again
+                    netman.start_hotspot()
 
     return  MyHTTPReqHandler # the class our factory just created.
 
@@ -260,7 +268,7 @@ def main(address, port, ui_path, pincode, timeout, service, protoport, bt_addres
 
     # Start an HTTP server to serve the content in the ui dir and handle the
     # POST request in the handler class.
-    print('Waiting for a connection to our hotspot {netman.get_hotspot_SSID()} ...')
+    print('Waiting for a connection to our hotspot {} ...'.format(netman.get_hotspot_SSID()))
     httpd = MyHTTPServer(web_dir, server_address, MyRequestHandlerClass)
     try:
         httpd.serve_forever()

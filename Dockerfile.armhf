@@ -32,3 +32,4 @@ COPY . .
 RUN [ "/bin/bash", "scripts/install.sh" ]
 # RUN [ "cross-build-end" ]
 CMD ["bash", "-c", "scripts/run.sh"]
+EXPOSE 8000

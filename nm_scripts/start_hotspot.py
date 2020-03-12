@@ -4,7 +4,7 @@ You do this by sending a dict to AddConnection.
 The dict below was generated with n-m dump on an existing connection and then anonymised.
 
 # manually (in base balena OS) add a local hotspot with NO password (open)
-nmcli connection add type wifi ifname wlan0 con-name hotspot autoconnect yes ssid PFC_EDU mode ap
+nmcli connection add type wifi ifname wlan0 con-name hotspot autoconnect yes ssid Raspibox mode ap
 nmcli connection modify hotspot 802-11-wireless.mode ap ipv4.method shared
 nmcli connection up hotspot
 
@@ -24,11 +24,11 @@ import uuid
 import os, sys
 
 
-connection_ID = 'PFC_EDU'
+connection_ID = 'Raspibox'
 hotspot = {
  '802-11-wireless': {'band': 'bg',
                      'mode': 'ap',
-                     'ssid': 'PFC_EDU-'+os.getenv('RESIN_DEVICE_NAME_AT_INIT')},
+                     'ssid': 'Raspibox-'+os.getenv('RESIN_DEVICE_NAME_AT_INIT')},
  'connection': {'autoconnect': False,
                 'id': connection_ID,
                 'interface-name': os.environ.get('DEFAULT_INTERFACE'),
@@ -41,7 +41,7 @@ hotspot = {
 }
 
 NetworkManager.Settings.AddConnection(hotspot)
-print("Added connection: {hotspot}")
+print("Added connection: {}".format(hotspot))
 
 # Now find this connection and its device
 connections = NetworkManager.Settings.ListConnections()
