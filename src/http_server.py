@@ -13,7 +13,7 @@ import dnsmasq
 
 # Defaults
 ADDRESS = os.getenv('DEFAULT_GATEWAY', netman.get_Host_name_IP())
-PORT = 80
+PORT = 8000
 UI_PATH = '../ui'
 
 def bt_service(addr, proto_port="", *serv):
@@ -359,10 +359,9 @@ if __name__ == "__main__":
 
     os.environ.update(main.defaults)
 
-    print('Address={address}')
-    print('Port={port}')
-    print('UI path={ui_path}')
-    print('Device registration code={pincode}')
-
-    print('Bluetooth Device={}'.format(myenv['BTSPEAKER_SINK']))
+    print('Address={}'\
+          'Port={}'\
+          'UI path={}'\
+          'Device registration code={}'\
+          'Bluetooth Device={}'.format(address, port, ui_path, pincode, myenv['BTSPEAKER_SINK']))
     main(address, port, ui_path, pincode, int(myenv['BTSPEAKER_SCAN_DURATION']), service, protoport, myenv['BTSPEAKER_SINK'])

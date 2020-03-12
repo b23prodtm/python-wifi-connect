@@ -1,4 +1,4 @@
-FROM balenalib/raspberrypi3-debian-python:3-stretch-build
+FROM balenalib/raspberrypi3-ubuntu-python:3.6-bionic-build
 ENV DBUS_SYSTEM_BUS_ADDRESS unix:path=/host/run/dbus/system_bus_socket
 ARG DEFAULT_INTERFACE
 ENV DEFAULT_INTERFACE ${DEFAULT_INTERFACE:-"wlan0"}
@@ -17,11 +17,12 @@ ARG DEFAULT_INTERFACE
 ENV DEFAULT_INTERFACE ${DEFAULT_INTERFACE:-wlan0}
 # RUN [ "cross-build-start" ]
 RUN install_packages \
+  network-manager \
   bluez \
-  python3-networkmanager \
   python3-gi \
-  python3-dbus \
   python3-gpiozero \
+  python3-dbus \
+  python3-networkmanager \
   libbluetooth-dev \
   bluetooth \
   dnsmasq
