@@ -10,9 +10,21 @@ import netman
 import dnsmasq
 
 # Defaults
-ADDRESS = os.getenv('DEFAULT_GATEWAY', netman.get_Host_name_IP())
+ADDRESS = os.getenv('DEFAULT_GATEWAY', bln_device_fetch())
 PORT = 80
 UI_PATH = '../ui'
+
+def bln_device_fetch(attribute='ip_address', idx=0):
+    bln_device=os.getenv('BALENA_SUPERVISOR_DEVICE', None)
+    data = json.loads(bln_device)
+    if bln_device and attribute in data:
+        host_ip = str(data[attribute])
+        print('Host IP address:', host_ip)
+        return split(host_ip)[idx]
+    elif attribute is 'ip_address':
+        return netman.get_Host_name_IP()
+    else:
+        return False
 
 
 #------------------------------------------------------------------------------
@@ -20,7 +32,8 @@ UI_PATH = '../ui'
 def cleanup():
     print("Cleaning up prior to exit.")
     dnsmasq.stop()
-    netman.stop_hotspot()
+    if not int(os.getenv('DISABLE_HOTSPOT', 0)):
+        netman.stop_hotspot()
 
 
 #------------------------------------------------------------------------------
@@ -155,8 +168,9 @@ def RequestHandlerClassFactory(address, ssids, rcode):
                         conn_type = netman.CONN_TYPE_SEC_PASSWORD
                     break
 
-            # Stop the hotspot
-            netman.stop_hotspot()
+            if not int(os.getenv('DISABLE_HOTSPOT', 0)):
+                # Stop the hotspot
+                netman.stop_hotspot()
 
             # Connect to the user's selected AP
             success = netman.connect_to_AP(conn_type=conn_type, ssid=ssid, \
@@ -174,10 +188,8 @@ def RequestHandlerClassFactory(address, ssids, rcode):
                 sys.exit()
             else:
                 print('Connection failed, restarting the hotspot.')
-
                 # Update the list of SSIDs since we are not connected
                 self.ssids = netman.get_list_of_access_points()
-
                 # Start the hotspot again
                 netman.start_hotspot()
 
@@ -203,12 +215,11 @@ def main(address, port, ui_path, rcode, delete_connections):
     # in the list).
     ssids = netman.get_list_of_access_points()
 
-    if not os.getenv('DISABLE_HOTSPOT', 0):
+    if not int(os.getenv('DISABLE_HOTSPOT', 0)):
         # Start the hotspot
         if not netman.start_hotspot():
             print('Error starting hotspot, exiting.')
             sys.exit(1)
-
         # Start dnsmasq (to advertise us as a router so captured portal pops up
         # on the users machine to vend our UI in our http server)
         dnsmasq.start()
