@@ -10,12 +10,12 @@ import netman
 import dnsmasq
 
 def bln_device_fetch(attribute='ip_address', idx=0):
-    bln_device=os.getenv('BALENA_SUPERVISOR_DEVICE', None)
-    data = json.loads(bln_device)
-    if bln_device and attribute in data:
+    bln_device = os.getenv('BALENA_SUPERVISOR_DEVICE', None)
+    if bln_device:
+        data = json.loads(bln_device)
         host_ip = str(data[attribute])
         print('Host IP address:', host_ip)
-        return split(host_ip)[idx]
+        return host_ip.split()[idx]
     elif attribute == 'ip_address':
         return netman.get_Host_name_IP()
     else:
