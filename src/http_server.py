@@ -17,7 +17,7 @@ def bln_device_fetch(attribute='ip_address', idx=0):
         data = json.loads(bln_device)
         host_ip = str(data[attribute])
         print('Host IP address:', host_ip)
-        return host_ip.split()[idx]
+        return host_ip.split(' ')[idx]
     elif attribute == 'ip_address':
         return netman.get_Host_name_IP()
     else:

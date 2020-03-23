@@ -21,8 +21,9 @@ cd $TOPDIR
 
 # Introduced in supervisor v1.6. Returns the current device state
 export BALENA_SUPERVISOR_DEVICE="$BALENA_SUPERVISOR_ADDRESS/v1/device?apikey=$BALENA_SUPERVISOR_API_KEY"
-printf "curl -X GET --header \"Content-Type:application/json\" %s/v1/device?apikey=%s" $BALENA_SUPERVISOR_ADDRESS $BALENA_SUPERVISOR_API_KEY
+printf "curl -X GET --header \"Content-Type:application/json\" %s/v1/device?apikey=%s\n" $BALENA_SUPERVISOR_ADDRESS $BALENA_SUPERVISOR_API_KEY
 export BALENA_SUPERVISOR_DEVICE=$(curl -X GET --header "Content-Type:application/json" $BALENA_SUPERVISOR_DEVICE)
+printf "  %s\n" $BALENA_SUPERVISOR_DEVICE
 
 # Sometimes it takes a couple of seconds to connect the wifi,..
 sleep 15
