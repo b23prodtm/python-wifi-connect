@@ -264,7 +264,7 @@ def main(address, port, ui_path, pincode, timeout, service, protoport, bt_addres
 
     # Find the ui directory which is up one from where this file is located.
     web_dir = os.path.join(os.path.dirname(__file__), ui_path)
-    print('HTTP serving directory: {web_dir} on {address}:{port}')
+    print('HTTP serving directory: {} on {}:{}'.format(web_dir, address, port))
 
     # Change to this directory so the HTTPServer returns the index.html in it
     # by default when it gets a GET.
