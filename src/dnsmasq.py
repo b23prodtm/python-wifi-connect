@@ -25,7 +25,7 @@ def start():
 
     # build the list of args
     args = ["dnsmasq"]
-    args.append("--address=/#/{DEFAULT_GATEWAY}")
+    args.append("--listen-address=/#/{DEFAULT_GATEWAY}")
     args.append("--dhcp-range={DEFAULT_DHCP_RANGE}")
     args.append("--dhcp-option=option:router,{DEFAULT_GATEWAY}")
     args.append("--interface={DEFAULT_INTERFACE}")
