@@ -25,7 +25,7 @@ def bln_device_fetch(attribute='ip_address', idx=0):
 
 # Defaults
 ADDRESS = os.getenv('DEFAULT_GATEWAY', bln_device_fetch())
-PORT = 8000
+PORT = 80
 UI_PATH = '../ui'
 
 def bt_service(addr, proto_port="", *serv):
@@ -152,12 +152,10 @@ def RequestHandlerClassFactory(address, nearbydevices, pincode):
                 self.send_response(200)
                 self.end_headers()
                 response = BytesIO()
-                # Update the list of nearbydevices since we are not connected
-                nearbydevices = self.nearbydevices # passed in to the class factory
                 """ map whatever we get from bluetooth to our constants:
                 Device - 00:16:BC:30:D8:76
                 """
-                response.write(json.dumps(nearbydevices).encode('utf-8'))
+                response.write(json.dumps(self.nearbydevices).encode('utf-8'))
                 print('GET {} returning: {}'.format(self.path, response.getvalue()))
                 self.wfile.write(response.getvalue())
                 return
@@ -208,7 +206,7 @@ def RequestHandlerClassFactory(address, nearbydevices, pincode):
             success='OK\n'
             error='ERROR\n'
             try:
-                bt_connect_service(nearby_devices, bt_addr, protoport, service)
+                bt_connect_service(self.nearby_devices, bt_addr, protoport, service)
                 if sock:
                     response.write(b'{}'.format(success))
                     # pair the new device as known device

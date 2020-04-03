@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-
+set -e
 # Check OS we are running on.  NetworkManager only works on Linux.
 if [[ "$OSTYPE" != "linux"* ]]; then
     echo "ERROR: This application only runs on Linux."

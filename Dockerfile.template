@@ -20,7 +20,9 @@ RUN install_packages \
   network-manager \
   bluez \
   python3-gi \
+# # ### ARM BEGIN
   python3-gpiozero \
+# # ### ARM END
   python3-dbus \
   python3-networkmanager \
   libbluetooth-dev \
@@ -32,4 +34,4 @@ COPY . .
 RUN [ "/bin/bash", "scripts/install.sh" ]
 # RUN [ "cross-build-end" ]
 CMD ["/bin/bash", "scripts/run.sh"]
-EXPOSE 8000
+EXPOSE 80
