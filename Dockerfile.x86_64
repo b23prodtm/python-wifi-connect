@@ -20,9 +20,9 @@ RUN install_packages \
   network-manager \
   bluez \
   python3-gi \
-# # # ### ARM BEGIN
-#   python3-gpiozero \
-# # # ### ARM END
+# # ### ARM BEGIN
+  python3-gpiozero \
+# # ### ARM END
   python3-dbus \
   python3-networkmanager \
   libbluetooth-dev \
