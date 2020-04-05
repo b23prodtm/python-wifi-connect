@@ -28,6 +28,12 @@ RUN install_packages \
   python3-networkmanager \
   libbluetooth-dev \
   bluetooth \
+\
+  libboost-python-dev \
+  libboost-thread-dev \
+  libglib2.0-dev \
+  python3-dev \
+\
   dnsmasq
 WORKDIR /usr/src/app
 COPY . .

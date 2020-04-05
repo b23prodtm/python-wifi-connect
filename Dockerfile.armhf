@@ -26,7 +26,6 @@ RUN install_packages \
 # # ### ARM END
   python3-dbus \
   python3-networkmanager \
-  libbluetooth-dev \
   bluetooth \
   dnsmasq
 WORKDIR /usr/src/app
