@@ -122,7 +122,7 @@ def RequestHandlerClassFactory(address, nearby_devices, pincode, trusted_devices
             self.address = address
             self.nearby_devices = nearby_devices
             self.pincode = pincode
-            self.trusted_devices = None
+            self.trusted_devices = ()
             super(MyHTTPReqHandler, self).__init__(*args, **kwargs)
 
         # See if this is a specific request, otherwise let the server handle it.
@@ -213,10 +213,10 @@ def RequestHandlerClassFactory(address, nearby_devices, pincode, trusted_devices
             try:
                 sock = bt_connect_service(self.nearby_devices, bt_addr, protoport, service)
                 if sock:
-                    response.write(b'{}'.format(success))
+                    response.write(success.encode())
                     sock.close()
                 else:
-                    response.write(b'{}'.format(error))
+                    response.write(error.encode())
             except bluetooth.btcommon.BluetoothError as err:
                 print(" Main thread error : %s" % (err))
                 exit(1)
@@ -240,12 +240,12 @@ def RequestHandlerClassFactory(address, nearby_devices, pincode, trusted_devices
 def discover_devices(timeout = 5, trusted_devices = ()):
     print("looking for nearby devices...")
     try:
-        nearby_devices = trusted_devices + bluetooth.discover_devices(lookup_names = True, flush_cache = True, duration = timeout)
+        nearby_devices = trusted_devices + tuple(bluetooth.discover_devices(lookup_names = True, flush_cache = True, duration = timeout))
         if BT_BLE:
             service = DiscoveryService()
             devices = service.discover(timeout)
 
-            nearby_devices += list(devices.items()):
+            nearby_devices += tuple(devices.items())
 
         print("found %d devices" % len(nearby_devices))
         return nearby_devices
@@ -278,7 +278,7 @@ def main(address, port, ui_path, pincode, service, protoport):
     server_address = (address, port)
 
     # Custom request handler class (so we can pass in our own args)
-    MyRequestHandlerClass = RequestHandlerClassFactory(address, nearby_devices, pincode)
+    MyRequestHandlerClass = RequestHandlerClassFactory(address, nearby_devices, pincode, ())
 
     # Start an HTTP server to serve the content in the ui dir and handle the
     # POST request in the handler class.
@@ -380,4 +380,4 @@ if __name__ == "__main__":
           'UI path={} '\
           'Bluetooth Low Energy={} '
           'Device registration code={}'.format(address, port, ui_path, BT_BLE, pincode))
-    main(address, port, ui_path, pincode, 5, service, protoport)
+    main(address, port, ui_path, pincode, service, protoport)
