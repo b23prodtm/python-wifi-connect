@@ -26,7 +26,8 @@ export BALENA_SUPERVISOR_DEVICE=$(curl -X GET --header "Content-Type:application
 printf "  %s\n" $BALENA_SUPERVISOR_DEVICE
 
 # Sometimes it takes a couple of seconds to connect the wifi,..
-sleep 15
+#sleep 15
+
 # Use the venv
 source $TOPDIR/venv/bin/activate
 # Start our application
