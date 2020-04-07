@@ -13,7 +13,7 @@
     <!-- Latest compiled JavaScript -->
     <script src="js/bootstrap.min.js"></script>
 
-    <script src="/js/index.js"></script>
+    <script src="js/index.js"></script>
     <link rel="shortcut icon" href="/img/favicon.ico">
 
     <style>
@@ -44,9 +44,17 @@
 
       <div class="row reg-row">
         <div class="col-lg-8 col-lg-offset-1">
-          <h4>Please write down this device pin code:</h4>
+          <h4>Please write down the device pin code:</h4>
           <input class="form-control" id="pincode" readonly value=""></input>
-          <p>You will need it to add your device to your account in the next step.</p>
+          <p>You will need it to connect to your device in the next step.</p>
+        </div>
+      </div>
+
+      <div class="row reg-row">
+        <div class="col-lg-8 col-lg-offset-1">
+          <h4>Bluetooth device information</h4>
+          <input class="form-control" id="status" readonly value=""></input>
+          <p>It will show more information in the next step.</p>
         </div>
       </div>
 
@@ -70,14 +78,14 @@
             <div class="form-group hidden" id="service-group">
               <label for="service" class="control-label col-lg-4">Bluetooth Service Name</label>
               <div class="col-lg-4">
-                <input class="form-control" name="service"></input>
+                <input class="form-control" name="service" value="Audio Sink"></input>
               </div>
             </div>
 
             <div class="form-group hidden" id="protoport-group">
               <label for="protoport" class="control-label col-lg-4">Bluetooth Protocol:Port</label>
               <div class="col-lg-4">
-                <input type='password' class="form-control" name='protoport'></input>
+                <input type='form-control' class="form-control" name="protoport" value="L2CAP:25"></input>
               </div>
             </div>
 
@@ -93,7 +101,7 @@
       <div class="row hidden" id='submit-message'>
         <div class="col-lg-8 col-lg-offset-1">
           <h3>Applying changes...</h3>
-          <p>Your device will soon be online. If connection is unsuccessful, the Access Point will be back up in a few minutes.</p>
+          <p>Connecting to your bluetooth device...</p>
         </div>
       </div>
 

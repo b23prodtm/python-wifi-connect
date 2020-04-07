@@ -112,7 +112,7 @@ class MyHTTPServer(HTTPServer):
 # A custom http request handler class factory.
 # Handle the GET and POST requests from the UI form and JS.
 # The class factory allows us to pass custom arguments to the handler.
-def RequestHandlerClassFactory(address, nearby_devices, pincode, trusted_devices):
+def RequestHandlerClassFactory(address, nearby_devices, pincode):
 
     class MyHTTPReqHandler(SimpleHTTPRequestHandler):
 
@@ -123,6 +123,7 @@ def RequestHandlerClassFactory(address, nearby_devices, pincode, trusted_devices
             self.nearby_devices = nearby_devices
             self.pincode = pincode
             self.trusted_devices = ()
+            self.status = 'Connect to your device.'
             super(MyHTTPReqHandler, self).__init__(*args, **kwargs)
 
         # See if this is a specific request, otherwise let the server handle it.
@@ -146,6 +147,16 @@ def RequestHandlerClassFactory(address, nearby_devices, pincode, trusted_devices
                 self.end_headers()
                 response = BytesIO()
                 response.write(self.pincode.encode('utf-8'))
+                print('GET {} returning: {}'.format(self.path, response.getvalue()))
+                self.wfile.write(response.getvalue())
+                return
+
+            # Handle a REST API request to return the device registration code
+            if '/status' == self.path:
+                self.send_response(200)
+                self.end_headers()
+                response = BytesIO()
+                response.write(self.status.encode('utf-8'))
                 print('GET {} returning: {}'.format(self.path, response.getvalue()))
                 self.wfile.write(response.getvalue())
                 return
@@ -194,14 +205,14 @@ def RequestHandlerClassFactory(address, nearby_devices, pincode, trusted_devices
                 print('Error: POST is missing {} field.'.format(FORM_BTADDR))
                 return
 
-            bt_addr = fields[FORM_BTADDR][0]
+            bt_addr = tuple(fields[FORM_BTADDR][0].split(','))
             protoport = None
             service = None
             if FORM_SERVICE in fields:
                 service = fields[FORM_SERVICE][0]
             if FORM_PROTOCOL in fields:
-                protoport = fields[FORM_PROTOCOL][0]
-
+                s = fields[FORM_PROTOCOL][0].split(':')
+                protoport = eval("str(bluetooth.{}) + ':{}'".format(s[0], s[1]))
             if not int(os.getenv('DISABLE_HOTSPOT', 0)):
                 # Stop the hotspot
                 netman.stop_hotspot()
@@ -211,7 +222,7 @@ def RequestHandlerClassFactory(address, nearby_devices, pincode, trusted_devices
             success='{} Connected: Yes\n'.format(bt_addr)
             error='{} Connected: No\n'.format(bt_addr)
             try:
-                sock = bt_connect_service(self.nearby_devices, bt_addr, protoport, service)
+                sock = bt_connect_service(self.nearby_devices, bt_addr[0], protoport, service)
                 if sock:
                     response.write(success.encode())
                     sock.close()
@@ -222,15 +233,16 @@ def RequestHandlerClassFactory(address, nearby_devices, pincode, trusted_devices
                 exit(1)
 
             self.wfile.write(response.getvalue())
+            self.status = response.getvalue()
 
             # Handle success or failure of the new connection
             if response.getvalue() is success:
-                print('Connected! Display device information.')
-                self.trusted_devices += (bt_addr, self.nearby_devices[bt_addr])
+                print('Connected! Display device information. ', response.getvalue())
+                self.trusted_devices += bt_addr
             else:
-                print('Connection failed, restarting the hotspot.')
+                print('Connection failed, restarting the hotspot. ', response.getvalue())
                 # Update the list of nearby_devices since we are not connected
-                self.nearby_devices = discover_devices()
+                self.nearby_devices = discover_devices(trusted_devices = self.trusted_devices)
             if not int(os.getenv('DISABLE_HOTSPOT', 0)):
                 # Start the hotspot again
                 netman.start_hotspot()
@@ -241,6 +253,7 @@ def discover_devices(timeout = 5, trusted_devices = ()):
     print("looking for nearby devices...")
     try:
         nearby_devices = trusted_devices + tuple(bluetooth.discover_devices(lookup_names = True, flush_cache = True, duration = timeout))
+
         if BT_BLE:
             service = DiscoveryService()
             devices = service.discover(timeout)
@@ -255,7 +268,7 @@ def discover_devices(timeout = 5, trusted_devices = ()):
 
 #------------------------------------------------------------------------------
 # Create the hotspot, start dnsmasq, start the HTTP server.
-def main(address, port, ui_path, pincode, service, protoport):
+def main(address, port, ui_path, pincode):
     nearby_devices = discover_devices()
     if not int(os.getenv('DISABLE_HOTSPOT', 0)):
         # Start the hotspot
@@ -278,7 +291,7 @@ def main(address, port, ui_path, pincode, service, protoport):
     server_address = (address, port)
 
     # Custom request handler class (so we can pass in our own args)
-    MyRequestHandlerClass = RequestHandlerClassFactory(address, nearby_devices, pincode, ())
+    MyRequestHandlerClass = RequestHandlerClassFactory(address, nearby_devices, pincode)
 
     # Start an HTTP server to serve the content in the ui dir and handle the
     # POST request in the handler class.
@@ -311,17 +324,13 @@ if __name__ == "__main__":
     ui_path = UI_PATH
     pincode = '0000'
 
-    service = 'Audio Sink'
-    protoport = str(bluetooth.L2CAP) + ":25"
-
     myenv = dict()
     main.defaults = dict()
     main.defaults = {
         "address": address,
         "port": str(port),
         "ui_path": ui_path,
-        "pincode": str(pincode),
-        "service": service
+        "pincode": str(pincode)
         }
     myenv.update(main.defaults)
     myenv.update(os.environ)
@@ -332,10 +341,8 @@ if __name__ == "__main__":
 '  -p <HTTP server port>        Default: {} \n'\
 '  -u <UI directory to serve>   Default: "{}" \n'\
 '  -r Device Registration Code  Default: "{}" \n'\
-'  -s,--uuid <service-name>     Default: {}\n'\
-'  --protocol <proto:port>      Default: {}\n'\
 '  --ble                        Default: None\n'\
-'  -h,--help Show help.\n'.format(address, port, ui_path, pincode, service, protoport)
+'  -h,--help Show help.\n'.format(address, port, ui_path, pincode)
 
     try:
         opts, args = getopt.getopt(sys.argv[1:], "a:p:u:r:s:h",["help", "ble", "uuid=", "protocol="])
@@ -360,12 +367,6 @@ if __name__ == "__main__":
         elif opt in ("-r"):
             pincode = arg
 
-        elif opt in ("-s", "--uuid"):
-            service = arg
-
-        elif opt in ("--protocol"):
-            protoport = arg
-
         elif opt in ("--ble"):
             BT_BLE = 1
 
@@ -380,4 +381,4 @@ if __name__ == "__main__":
           'UI path={} '\
           'Bluetooth Low Energy={} '
           'Device registration code={}'.format(address, port, ui_path, BT_BLE, pincode))
-    main(address, port, ui_path, pincode, service, protoport)
+    main(address, port, ui_path, pincode)

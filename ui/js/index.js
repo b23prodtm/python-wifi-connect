@@ -1,22 +1,21 @@
 $(function(){
     var devices = undefined;
 
-    function showHideFormFields() {
-        var security = $(this).find(':selected').attr('data-security');
+    function hideFormFields() {
         // start off with all fields hidden
         $('#service-group').addClass('hidden');
         $('#protoport-group').addClass('hidden');
-        if(security === 'NONE') {
-            return; // nothing to do
-        }
-        if(security === 'ENTERPRISE') {
-            $('#service-group').removeClass('hidden');
-            $('#protoport-group').removeClass('hidden');
-            return;
-        }
     }
 
-    $('#bt_addr-select').change(showHideFormFields);
+    function status(data){
+        if(data.length !== 0){
+            $(this).val(data);
+        } else {
+            $('.reg-row').hide(); // display device information
+	      }
+    }
+
+    $('#bt_addr-select').change(hideFormFields);
 
     $.get("/pincode", function(data){
         if(data.length !== 0){
@@ -26,22 +25,24 @@ $(function(){
 	}
     });
 
+    $.get("/status", status);
+
     $.get("/devices", function(data){
         if(data.length === 0){
             $('.before-submit').hide();
             $('#no-devices-message').removeClass('hidden');
         } else {
             devices = JSON.parse(data);
-            $.each(devices, function(bt_addr, name){
+            $.each(devices, function(index, name){
                 $('#bt_addr-select').append(
                     $('<option>')
                         .text(name)
-                        .attr('val', bt_addr)
+                        .attr('val', index)
                         //.attr('data-security', val.security.toUpperCase())
                 );
             });
 
-            jQuery.proxy(showHideFormFields, $('#bt_addr-select'))();
+            jQuery.proxy(hideFormFields, $('#bt_addr-select'))();
         }
     });
 
@@ -49,6 +50,10 @@ $(function(){
         $.post('/connect', $('#connect-form').serialize(), function(data){
             $('.before-submit').hide();
             $('#submit-message').removeClass('hidden');
+            // delay 5 seconds
+            myTimer = $.timer(5000, function() {
+              jQuery.proxy(status, $('#status'))();
+            });
         });
         ev.preventDefault();
     });
