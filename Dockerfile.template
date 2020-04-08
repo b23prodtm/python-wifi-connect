@@ -1,8 +1,8 @@
 FROM balenalib/%%BALENA_MACHINE_NAME%%-ubuntu-python:3.6-bionic-build
 ENV DBUS_SYSTEM_BUS_ADDRESS="unix:path=/host/run/dbus/system_bus_socket"
 
-ARG DEFAULT_INTERFACE
-ENV DEFAULT_INTERFACE ${DEFAULT_INTERFACE:-"wlan0"}
+ARG BT_SCAN_TIMEOUT
+ENV BT_SCAN_TIMEOUT ${BT_SCAN_TIMEOUT:-2}
 ARG DISABLE_HOTSPOT
 ENV DISABLE_HOTSPOT ${DISABLE_HOTSPOT:-1}
 ARG DEFAULT_GATEWAY
@@ -29,7 +29,19 @@ RUN install_packages \
   libbluetooth-dev \
   bluetooth \
   dnsmasq
+
+WORKDIR /usr/src
+
+# Setup udev rules - when a client is connected
+# this lets us register device name in cache
+# and run a python script
+COPY bluetooth-udev .
+RUN chmod +x bluetooth-udev
+COPY udev-rules/ /etc/udev/rules.d/
+COPY bluetooth-scripts bluetooth-scripts
+
 WORKDIR /usr/src/app
+
 COPY . .
 
 RUN [ "/bin/bash", "scripts/install.sh" ]

@@ -9,7 +9,7 @@ $(function(){
 
     function status(data){
         if(data.length !== 0){
-            $(this).val(data);
+            $('#status').val(data);
         } else {
             $('.reg-row').hide(); // display device information
 	      }
@@ -50,10 +50,7 @@ $(function(){
         $.post('/connect', $('#connect-form').serialize(), function(data){
             $('.before-submit').hide();
             $('#submit-message').removeClass('hidden');
-            // delay 5 seconds
-            myTimer = $.timer(5000, function() {
-              jQuery.proxy(status, $('#status'))();
-            });
+            status(data);
         });
         ev.preventDefault();
     });

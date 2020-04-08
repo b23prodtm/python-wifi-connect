@@ -29,6 +29,7 @@ ADDRESS = os.getenv('DEFAULT_GATEWAY', bln_device_fetch())
 PORT = 80
 UI_PATH = '../ui'
 BT_BLE = os.getenv('BT_BLE', 0)
+BT_SCAN_TIMEOUT = int(os.getenv('BT_SCAN_TIMEOUT', 2))
 
 if BT_BLE:
     from bluetooth.ble import DiscoveryService
@@ -163,7 +164,7 @@ def RequestHandlerClassFactory(address, nearby_devices, pincode):
 
             # Handle a REST API request to return the list of nearby_devices
             if '/devices' == self.path:
-                # Update the list of nearby_devices since we are not connected
+                # Update the list of nearby_devices
                 self.nearby_devices = discover_devices(trusted_devices = self.trusted_devices)
                 self.send_response(200)
                 self.end_headers()
@@ -241,15 +242,14 @@ def RequestHandlerClassFactory(address, nearby_devices, pincode):
                 self.trusted_devices += bt_addr
             else:
                 print('Connection failed, restarting the hotspot. ', response.getvalue())
-                # Update the list of nearby_devices since we are not connected
-                self.nearby_devices = discover_devices(trusted_devices = self.trusted_devices)
             if not int(os.getenv('DISABLE_HOTSPOT', 0)):
                 # Start the hotspot again
                 netman.start_hotspot()
 
     return  MyHTTPReqHandler # the class our factory just created.
 
-def discover_devices(timeout = 5, trusted_devices = ()):
+def discover_devices(trusted_devices = ()):
+    timeout = BT_SCAN_TIMEOUT
     print("looking for nearby devices...")
     try:
         nearby_devices = trusted_devices + tuple(bluetooth.discover_devices(lookup_names = True, flush_cache = True, duration = timeout))
