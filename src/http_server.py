@@ -206,7 +206,7 @@ def RequestHandlerClassFactory(address, nearby_devices, pincode):
                 print('Error: POST is missing {} field.'.format(FORM_BTADDR))
                 return
 
-            bt_addr = tuple(fields[FORM_BTADDR][0].split(','))
+            bt_addr = fields[FORM_BTADDR][0]
             protoport = None
             service = None
             if FORM_SERVICE in fields:
@@ -223,7 +223,7 @@ def RequestHandlerClassFactory(address, nearby_devices, pincode):
             success='{} Connected: Yes\n'.format(bt_addr)
             error='{} Connected: No\n'.format(bt_addr)
             try:
-                sock = bt_connect_service(self.nearby_devices, bt_addr[0], protoport, service)
+                sock = bt_connect_service(self.nearby_devices, bt_addr, protoport, service)
                 if sock:
                     response.write(success.encode())
                     sock.close()
@@ -239,7 +239,16 @@ def RequestHandlerClassFactory(address, nearby_devices, pincode):
             # Handle success or failure of the new connection
             if response.getvalue() is success:
                 print('Connected! Display device information. ', response.getvalue())
-                self.trusted_devices += bt_addr
+                self.trusted_devices += (bt_addr, self.nearby_devices[bt_addr])
+                try:
+                    p = subprocess.Popen("printf '{}' | tee /var/cache/bluetooth/reconnect_device".format(bt_addr), shell=True, stdout=subprocess.PIPE)
+                    print(ps.stdout.read())
+                    ps.stdout.close()
+                    ps.wait()
+                except:
+                    print(" Main thread error, Popen")
+                else:
+                    p.close()
             else:
                 print('Connection failed, restarting the hotspot. ', response.getvalue())
             if not int(os.getenv('DISABLE_HOTSPOT', 0)):
@@ -252,13 +261,16 @@ def discover_devices(trusted_devices = ()):
     timeout = BT_SCAN_TIMEOUT
     print("looking for nearby devices...")
     try:
-        nearby_devices = trusted_devices + tuple(bluetooth.discover_devices(lookup_names = True, flush_cache = True, duration = timeout))
+        nearby_devices = bluetooth.discover_devices(lookup_names = True, flush_cache = True, duration = timeout)
+        for addr, name in trusted_devices:
+            nearby_devices[addr] = name
 
         if BT_BLE:
             service = DiscoveryService()
             devices = service.discover(timeout)
 
-            nearby_devices += tuple(devices.items())
+            for addr, name in devices.items():
+                nearby_devices[addr] = name
 
         print("found %d devices" % len(nearby_devices))
         return nearby_devices

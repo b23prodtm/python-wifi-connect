@@ -1,6 +1,8 @@
 FROM balenalib/%%BALENA_MACHINE_NAME%%-ubuntu-python:3.6-bionic-build
 ENV DBUS_SYSTEM_BUS_ADDRESS="unix:path=/host/run/dbus/system_bus_socket"
 
+ARG BT_BLE
+ENV BT_BLE ${BT_BLE:-0}
 ARG BT_SCAN_TIMEOUT
 ENV BT_SCAN_TIMEOUT ${BT_SCAN_TIMEOUT:-2}
 ARG DISABLE_HOTSPOT
@@ -32,17 +34,20 @@ RUN install_packages \
 
 WORKDIR /usr/src
 
-# Setup udev rules - when a client is connected
-# this lets us register device name in cache
-# and run a python script
-COPY bluetooth-udev .
-RUN chmod +x bluetooth-udev
-COPY udev-rules/ /etc/udev/rules.d/
 COPY bluetooth-scripts bluetooth-scripts
 
 WORKDIR /usr/src/app
 
 COPY . .
+
+# Bluetooth Low Energy through GATTLIB and bluetooth.ble (Experimental)
+RUN if [ "$BT_BLE" = 1 ]; then printf "pygattlib" | tee -a config/requirements.txt \
+&& install_packages \
+  pkg-config \
+  libboost-python-dev \
+  libboost-thread-dev \
+  libglib2.0-dev \
+  python3-dev; fi
 
 RUN [ "/bin/bash", "scripts/install.sh" ]
 # RUN [ "cross-build-end" ]
