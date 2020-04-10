@@ -79,17 +79,20 @@ def bt_connect(proto, addr, port):
     return None
 
 def bt_connect_service(nearby_devices, bt_addr="00:00:00:00:00:00", proto_port="", serv=""):
+    sock = None
     for addr, name in nearby_devices:
-        sock = None
         if bt_addr == "00:00:00:00:00:00":
             print("  - %s , %s:" % (addr, name))
             sock = bt_service(addr, proto_port, serv)
         elif bt_addr == addr:
             print("  - found device %s , %s:" % (addr, name))
             sock = bt_service(addr, proto_port, serv)
-        if sock:
-            print("  - service %s available" % (serv))
-            return sock
+            break
+    if sock:
+        print("  - service %s available" % (serv))
+    else:
+        print(" - service %s unavailable at %s" % (serv, bt_addr))
+    return sock
 
 #------------------------------------------------------------------------------
 # called at exit
@@ -206,7 +209,8 @@ def RequestHandlerClassFactory(address, nearby_devices, pincode):
                 print('Error: POST is missing {} field.'.format(FORM_BTADDR))
                 return
 
-            bt_addr = fields[FORM_BTADDR][0]
+            bt_addr = fields[FORM_BTADDR][0].split(',')[0]
+            bt_name = fields[FORM_BTADDR][0].split(',')[1]
             protoport = None
             service = None
             if FORM_SERVICE in fields:
@@ -234,12 +238,12 @@ def RequestHandlerClassFactory(address, nearby_devices, pincode):
                 exit(1)
 
             self.wfile.write(response.getvalue())
-            self.status = response.getvalue()
+            self.status = response.getvalue().decode()
 
             # Handle success or failure of the new connection
-            if response.getvalue() is success:
+            if response.getvalue() is success.encode():
                 print('Connected! Display device information. ', response.getvalue())
-                self.trusted_devices += (bt_addr, self.nearby_devices[bt_addr])
+                self.trusted_devices += ((bt_addr, bt_name))
                 try:
                     p = subprocess.Popen("printf '{}' | tee /var/cache/bluetooth/reconnect_device".format(bt_addr), shell=True, stdout=subprocess.PIPE)
                     print(ps.stdout.read())
@@ -262,17 +266,16 @@ def discover_devices(trusted_devices = ()):
     print("looking for nearby devices...")
     try:
         nearby_devices = bluetooth.discover_devices(lookup_names = True, flush_cache = True, duration = timeout)
-        for addr, name in trusted_devices:
-            nearby_devices[addr] = name
+        nearby_devices += trusted_devices
+        print("found %d devices" % len(nearby_devices))
 
         if BT_BLE:
             service = DiscoveryService()
             devices = service.discover(timeout)
 
-            for addr, name in devices.items():
-                nearby_devices[addr] = name
+            nearby_devices += tuple(devices.items())
+            print("found %d devices (ble)" % len(devices.items()))
 
-        print("found %d devices" % len(nearby_devices))
         return nearby_devices
     except bluetooth.btcommon.BluetoothError as err:
         print(" Main thread error : %s" % (err))
