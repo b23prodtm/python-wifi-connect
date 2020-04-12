@@ -11,6 +11,7 @@ from io import BytesIO
 # Local modules
 import netman
 import dnsmasq
+import btspeaker
 
 def bln_device_fetch(attribute='ip_address', idx=0):
     bln_device = os.getenv('BALENA_SUPERVISOR_DEVICE', None)
@@ -28,71 +29,6 @@ def bln_device_fetch(attribute='ip_address', idx=0):
 ADDRESS = os.getenv('DEFAULT_GATEWAY', bln_device_fetch())
 PORT = 80
 UI_PATH = '../ui'
-BT_BLE = os.getenv('BT_BLE', 0)
-BT_SCAN_TIMEOUT = int(os.getenv('BT_SCAN_TIMEOUT', 2))
-
-if BT_BLE:
-    from bluetooth.ble import DiscoveryService
-
-def bt_service(addr, proto_port="", *serv):
-    """
-    Name:        Audio Sink
-    Description: Headset Audio Gateway
-    Protocol:    L2CAP
-    Provider:    Toshiba
-    Port:        25
-    Service id:  None
-        print " Name: %s" % (services["name"])
-        print " Description: %s" % (services["description"])
-        print " Protocol: %s" % (services["protocol"])
-        print " Provider: %s" % (services["provider"])
-        print " Port: %s" % (services["port"])
-        print " Service id: %s" % (services["service-id"])
-    """
-    for services in bluetooth.find_service(address=addr):
-        if len(serv) > 0 and (services["name"] in serv or services["service-id"] in serv):
-            return bt_connect(services["protocol"], addr, services["port"])
-        else:
-            print("  UUID: %s (%s)" % (services["name"], services["service-id"]))
-            print("    Protocol: %s, %s, %s" % (services["protocol"], addr, services["port"]))
-    if proto_port != "" and re.compile("[^:]+:[0-9]+").match(proto_port):
-        s = proto_port.find(":")
-        proto = proto_port[0:s]
-        port = proto_port[s+1:]
-        return bt_connect(proto, addr, port)
-
-def bt_connect(proto, addr, port):
-    timeout = 0
-    while timeout < 5:
-        try:
-            print("  Attempting %s connection to %s (%s)" % (proto, addr, port))
-            s = bluetooth.BluetoothSocket(int(proto))
-            s.connect((addr,int(port)))
-            print("Success")
-            return s
-        except bluetooth.btcommon.BluetoothError as err:
-            print("%s\n" % (err))
-            print("  Fail, probably timeout. Attempting reconnection... (%s)" % (timeout))
-            timeout += 1
-            time.sleep(1)
-    print("  Service or Device not found")
-    return None
-
-def bt_connect_service(nearby_devices, bt_addr="00:00:00:00:00:00", proto_port="", serv=""):
-    sock = None
-    for addr, name in nearby_devices:
-        if bt_addr == "00:00:00:00:00:00":
-            print("  - %s , %s:" % (addr, name))
-            sock = bt_service(addr, proto_port, serv)
-        elif bt_addr == addr:
-            print("  - found device %s , %s:" % (addr, name))
-            sock = bt_service(addr, proto_port, serv)
-            break
-    if sock:
-        print("  - service %s available" % (serv))
-    else:
-        print(" - service %s unavailable at %s" % (serv, bt_addr))
-    return sock
 
 #------------------------------------------------------------------------------
 # called at exit
@@ -126,7 +62,6 @@ def RequestHandlerClassFactory(address, nearby_devices, pincode):
             self.address = address
             self.nearby_devices = nearby_devices
             self.pincode = pincode
-            self.trusted_devices = ()
             self.status = 'Connect to your device.'
             super(MyHTTPReqHandler, self).__init__(*args, **kwargs)
 
@@ -168,14 +103,14 @@ def RequestHandlerClassFactory(address, nearby_devices, pincode):
             # Handle a REST API request to return the list of nearby_devices
             if '/devices' == self.path:
                 # Update the list of nearby_devices
-                self.nearby_devices = discover_devices(trusted_devices = self.trusted_devices)
+                btspeaker.discover_devices(nearby_devices = self.nearby_devices)
                 self.send_response(200)
                 self.end_headers()
                 response = BytesIO()
                 """ map whatever we get from bluetooth to our constants:
                 Device - 00:16:BC:30:D8:76
                 """
-                response.write(json.dumps(self.nearby_devices).encode('utf-8'))
+                response.write(json.dumps(list(dict.fromkeys(self.nearby_devices))).encode('utf-8'))
                 print('GET {} returning: {}'.format(self.path, response.getvalue()))
                 self.wfile.write(response.getvalue())
                 return
@@ -190,7 +125,7 @@ def RequestHandlerClassFactory(address, nearby_devices, pincode):
             super().do_GET()
 
 
-        # test with: curl localhost:5000 -d "{'name':'value'}"
+        # test with: curl localhost -d "{'name':'value'}"
         def do_POST(self):
             content_length = int(self.headers['Content-Length'])
             body = self.rfile.read(content_length)
@@ -224,10 +159,14 @@ def RequestHandlerClassFactory(address, nearby_devices, pincode):
 
             # Connect to the user's selected AP
             sock = None
-            success='{} Connected: Yes\n'.format(bt_addr)
-            error='{} Connected: No\n'.format(bt_addr)
+            success='{} Service {}: Yes\n'.format(bt_addr, service)
+            error='{} Couldn\'t connect to service {}\n'.format(bt_addr, service)
             try:
-                sock = bt_connect_service(self.nearby_devices, bt_addr, protoport, service)
+                ps = subprocess.Popen("bluetoothctl <<EOF \ntrust {0}\nconnect {0}\nexit\nEOF".format(bt_addr), shell=True, stdout=subprocess.PIPE)
+                print(ps.stdout.read())
+                ps.stdout.close()
+                ps.wait()
+                sock = btspeaker.bt_connect_service(self.nearby_devices, bt_addr, protoport, service)
                 if sock:
                     response.write(success.encode())
                     sock.close()
@@ -242,8 +181,7 @@ def RequestHandlerClassFactory(address, nearby_devices, pincode):
 
             # Handle success or failure of the new connection
             if response.getvalue() is success.encode():
-                print('Connected! Display device information. ', response.getvalue())
-                self.trusted_devices += ((bt_addr, bt_name))
+                print('Connected to Device Name {}: {}'.format(bt_name, response.getvalue()))
                 try:
                     p = subprocess.Popen("printf '{}' | tee /var/cache/bluetooth/reconnect_device".format(bt_addr), shell=True, stdout=subprocess.PIPE)
                     print(ps.stdout.read())
@@ -261,30 +199,10 @@ def RequestHandlerClassFactory(address, nearby_devices, pincode):
 
     return  MyHTTPReqHandler # the class our factory just created.
 
-def discover_devices(trusted_devices = ()):
-    timeout = BT_SCAN_TIMEOUT
-    print("looking for nearby devices...")
-    try:
-        nearby_devices = bluetooth.discover_devices(lookup_names = True, flush_cache = True, duration = timeout)
-        nearby_devices += trusted_devices
-        print("found %d devices" % len(nearby_devices))
-
-        if BT_BLE:
-            service = DiscoveryService()
-            devices = service.discover(timeout)
-
-            nearby_devices += tuple(devices.items())
-            print("found %d devices (ble)" % len(devices.items()))
-
-        return nearby_devices
-    except bluetooth.btcommon.BluetoothError as err:
-        print(" Main thread error : %s" % (err))
-        exit(1)
-
 #------------------------------------------------------------------------------
 # Create the hotspot, start dnsmasq, start the HTTP server.
 def main(address, port, ui_path, pincode):
-    nearby_devices = discover_devices()
+    nearby_devices = btspeaker.discover_devices()
     if not int(os.getenv('DISABLE_HOTSPOT', 0)):
         # Start the hotspot
         if not netman.start_hotspot():
@@ -356,11 +274,10 @@ if __name__ == "__main__":
 '  -p <HTTP server port>        Default: {} \n'\
 '  -u <UI directory to serve>   Default: "{}" \n'\
 '  -r Device Registration Code  Default: "{}" \n'\
-'  --ble                        Default: None\n'\
 '  -h,--help Show help.\n'.format(address, port, ui_path, pincode)
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "a:p:u:r:s:h",["help", "ble", "uuid=", "protocol="])
+        opts, args = getopt.getopt(sys.argv[1:], "a:p:u:r:s:h",["help", "ui=", "protocol="])
     except getopt.GetoptError:
         print(usage)
         sys.exit(2)
@@ -382,9 +299,6 @@ if __name__ == "__main__":
         elif opt in ("-r"):
             pincode = arg
 
-        elif opt in ("--ble"):
-            BT_BLE = 1
-
         else:
             print("Wrong argument %s %s !" % (opt, arg))
             print(usage)
@@ -394,6 +308,5 @@ if __name__ == "__main__":
     print('Address={} '\
           'Port={}\n'\
           'UI path={} '\
-          'Bluetooth Low Energy={} '
-          'Device registration code={}'.format(address, port, ui_path, BT_BLE, pincode))
+          'Device registration code={}'.format(address, port, ui_path, pincode))
     main(address, port, ui_path, pincode)

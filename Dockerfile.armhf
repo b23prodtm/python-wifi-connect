@@ -40,7 +40,7 @@ WORKDIR /usr/src/app
 
 COPY . .
 
-# Bluetooth Low Energy through GATTLIB and bluetooth.ble (Experimental)
+# Bluetooth Low Energy through GATTLIB and gattlib (Experimental)
 RUN if [ "$BT_BLE" = 1 ]; then printf "pygattlib" | tee -a config/requirements.txt \
 && install_packages \
   pkg-config \
