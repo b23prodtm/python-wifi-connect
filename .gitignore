@@ -16,3 +16,4 @@ rc.local
 *.old
 *.aarch64
 *.arm
+.env
