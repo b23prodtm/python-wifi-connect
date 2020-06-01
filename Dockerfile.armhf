@@ -18,7 +18,7 @@ ENV INITSYSTEM OFF
 ENV UDEV on
 ARG DEFAULT_INTERFACE
 ENV DEFAULT_INTERFACE ${DEFAULT_INTERFACE:-wlan0}
-# RUN [ "cross-build-start" ]
+RUN [ "cross-build-start" ]
 RUN install_packages \
   network-manager \
   bluez \
@@ -50,6 +50,6 @@ RUN if [ "$BT_BLE" = 1 ]; then printf "pygattlib" | tee -a config/requirements.t
   python3-dev; fi
 
 RUN [ "/bin/bash", "scripts/install.sh" ]
-# RUN [ "cross-build-end" ]
+RUN [ "cross-build-end" ]
 CMD ["/bin/bash", "scripts/run.sh"]
 EXPOSE 80
