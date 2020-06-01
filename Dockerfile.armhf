@@ -49,7 +49,8 @@ RUN if [ "$BT_BLE" = 1 ]; then printf "pygattlib" | tee -a config/requirements.t
   libglib2.0-dev \
   python3-dev; fi
 
-RUN [ "/bin/bash", "scripts/install.sh" ]
+RUN chmod +x scripts/*
+RUN scripts/install.sh
 RUN [ "cross-build-end" ]
-CMD ["/bin/bash", "scripts/run.sh"]
+CMD scripts/run.sh
 EXPOSE 80
