@@ -15,5 +15,7 @@ hostapd.conf
 rc.local
 *.old
 *.aarch64
+*.x86*
+*.sed
 *.arm
 .env

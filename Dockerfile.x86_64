@@ -17,7 +17,8 @@ RUN install_packages \
   python3-networkmanager
 COPY . .
 
-RUN [ "/bin/bash", "scripts/install.sh" ]
+RUN chmod +x scripts/*
+RUN scripts/install.sh
 # RUN [ "cross-build-end" ]
 
-CMD ["bash", "-c", "scripts/run.sh"]
+CMD scripts/run.sh
