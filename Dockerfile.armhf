@@ -11,7 +11,7 @@ ARG DEFAULT_DHCP_RANGE
 ENV DEFAULT_DHCP_RANGE ${DEFAULT_DHCP_RANGE:-"192.168.42.2,192.168.42.254"}
 
 WORKDIR /usr/src/app
-# RUN [ "cross-build-start" ]
+RUN [ "cross-build-start" ]
 RUN install_packages \
   network-manager \
   python3-networkmanager
@@ -19,6 +19,6 @@ COPY . .
 
 RUN chmod +x scripts/*
 RUN scripts/install.sh
-# RUN [ "cross-build-end" ]
+RUN [ "cross-build-end" ]
 
 CMD scripts/run.sh
