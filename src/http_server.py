@@ -1,6 +1,6 @@
 # Our main wifi-connect application, which is based around an HTTP server.
 
-import os, getopt, sys, json, atexit
+import os, getopt, sys, json, atexit, time
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 from urllib.parse import parse_qs
 from io import BytesIO
@@ -205,9 +205,9 @@ def main(address, port, ui_path, rcode, delete_connections):
         netman.delete_all_wifi_connections()
 
     # Check if we are already connected, if so we are done.
-    if netman.have_active_internet_connection():
-        print('Already connected to the internet, nothing to do, exiting.')
-        sys.exit()
+    while netman.have_active_internet_connection():
+        print('Already connected to the internet, next check in 10s...')
+        time.sleep(10)
 
     # Get list of available AP from net man.
     # Must do this AFTER deleting any existing connections (above),
