@@ -5,11 +5,31 @@
 # over (the module documentation is scant).
 
 import NetworkManager
-import uuid, os, sys, time, socket
+import uuid
+import os
+import time
+import socket
+import json
+
+
+def bln_device_fetch(attribute='ip_address', idx=0):
+    bln_device = os.getenv('BALENA_SUPERVISOR_DEVICE', None)
+    if bln_device:
+        data = json.loads(bln_device)
+        host_ip = str(data[attribute])
+        print('Host IP address:', host_ip)
+        return host_ip.split(' ')[idx]
+    elif attribute == 'ip_address':
+        return get_Host_name_IP()
+    else:
+        return False
+
 
 HOTSPOT_CONNECTION_NAME = 'hotspot'
 GENERIC_CONNECTION_NAME = 'python-wifi-connect'
-DEFAULT_INTERFACE = os.getenv('DEFAULT_INTERFACE','wlan0') # use 'ip link show' to see list of interfaces
+# use 'ip link show | grep qlen' to see list of interfaces
+DEFAULT_INTERFACE = os.getenv('DEFAULT_INTERFACE', 'wlan0')
+DEFAULT_GATEWAY = os.getenv('DEFAULT_GATEWAY', bln_device_fetch())
 
 
 #------------------------------------------------------------------------------
